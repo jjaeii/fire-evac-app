@@ -28,5 +28,5 @@ window.App.Foundation.EnvConfig = Object.freeze({
   // 주제 이름을 아는 사람은 이 데이터를 볼 수 있으므로, 데모용으로만 쓴다.
   // 비우면 이 경로를 쓰지 않는다.
   SYNC_NTFY_HOST: 'https://ntfy.sh',
-  SYNC_NTFY_TOPIC: 'fireevac-939b1d0dc389548aa4df667d'
+  SYNC_NTFY_TOPIC: 'fireevac-53df81b393b77f8c51e5cc40'
 });
