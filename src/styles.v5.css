@@ -350,3 +350,25 @@
 
 .btn-siren-test { width: 100%; margin-top: 8px; font-size: 13.5px; }
 .siren-test-note { margin: 8px 0 0; font-size: 11px; line-height: 1.5; color: var(--color-text-dim); }
+
+/* ---- 현장 초기화 ---- */
+.reset-panel { padding: 14px 16px; }
+.reset-summary {
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: 800; cursor: pointer;
+  list-style: none; color: var(--color-text);
+}
+.reset-summary::-webkit-details-marker { display: none; }
+.reset-summary::before { content: "99 "; }
+.reset-sub { margin-top: 10px; }
+.reset-list { margin: 0 0 10px; padding-left: 18px; font-size: 12px; line-height: 1.7; color: var(--color-text-dim); }
+.reset-keep { margin: 0 0 10px; font-size: 11.5px; color: var(--color-text-dim); }
+.reset-last { font-size: 11px; color: var(--color-text-dim); margin-bottom: 10px; }
+.btn-reset-arm { width: 100%; font-size: 13px; }
+.reset-confirm {
+  background: var(--status-danger-bg); color: var(--status-danger);
+  border: 1px solid rgba(255,85,72,0.45); border-radius: 10px;
+  padding: 11px 12px; font-size: 13px; font-weight: 800; margin-bottom: 10px;
+}
+.reset-actions { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+.btn-reset-go { background: var(--status-danger); color: #fff; border: none; }

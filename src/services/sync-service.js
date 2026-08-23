@@ -25,7 +25,7 @@ window.App.Services.SyncService = (function () {
     notification_reads: { by: function (r) { return r.notificationId + '|' + r.workerId; }, newer: null }
   };
 
-  var LWW_KEYS = ['emergency', 'blocked_routes', 'qr_zone_mappings'];
+  var LWW_KEYS = ['emergency', 'blocked_routes', 'qr_zone_mappings', 'site_reset'];
 
   var ALL_KEYS = Object.keys(UNION_KEYS).concat(LWW_KEYS);
 

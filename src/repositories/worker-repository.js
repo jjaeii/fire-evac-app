@@ -76,6 +76,28 @@ window.App.Repositories.WorkerRepository = (function () {
     return getOnSite().filter(function (w) { return w.currentWorkZoneId === workZoneId; });
   }
 
+  // 현장 초기화용. 지금 들어와 있는 사람을 모두 퇴장 처리한다.
+  // 계정 자체는 남으므로 같은 이름·생년월일로 다시 로그인할 수 있다.
+  function clearAllOnSite(exceptWorkerId) {
+    var all = getAll();
+    var now = new Date().toISOString();
+    var count = 0;
+    var updated = all.map(function (w) {
+      if (!w.isOnSite || w.id === exceptWorkerId) return w;
+      count += 1;
+      return Object.assign({}, w, {
+        isOnSite: false,
+        currentWorkZoneId: null,
+        lastQrScannedAt: null,
+        currentConfirmStatus: 'none',
+        loggedOutAt: now,
+        updatedAt: now
+      });
+    });
+    var ok = saveAll(updated);
+    return { ok: ok, clearedCount: count };
+  }
+
   return {
     getAll: getAll,
     getOnSite: getOnSite,
@@ -84,6 +106,7 @@ window.App.Repositories.WorkerRepository = (function () {
     findByNameAndBirth: findByNameAndBirth,
     add: add,
     update: update,
-    getByWorkZoneId: getByWorkZoneId
+    getByWorkZoneId: getByWorkZoneId,
+    clearAllOnSite: clearAllOnSite
   };
 })();

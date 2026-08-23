@@ -87,7 +87,7 @@ if (-not (Test-Path -LiteralPath $stateDir)) {
 
 $allowedKeys = @(
   'emergency', 'workers', 'blocked_routes', 'worker_confirmations',
-  'notifications', 'notification_reads', 'qr_zone_mappings'
+  'notifications', 'notification_reads', 'qr_zone_mappings', 'site_reset'
 )
 
 $sharedState = [hashtable]::Synchronized(@{})

@@ -8,6 +8,7 @@ window.App.Services.AdminStatusService = (function () {
   var WorkZoneRepo = window.App.Repositories.WorkZoneRepository;
   var ConfirmationRepo = window.App.Repositories.WorkerConfirmationRepository;
   var EmergencyRepo = window.App.Repositories.EmergencyRepository;
+  var SiteResetRepo = window.App.Repositories.SiteResetRepository;
   var Logger = window.App.Foundation.Logger;
   var ErrorHandler = window.App.Foundation.ErrorHandler;
   var CONFIRM_TYPE_LABELS = window.App.Constants.CONFIRM_TYPE_LABELS;
@@ -28,6 +29,10 @@ window.App.Services.AdminStatusService = (function () {
     var rows = workers.map(function (w) {
       var zone = w.currentWorkZoneId ? WorkZoneRepo.getById(w.currentWorkZoneId) : null;
       var latestConfirmation = ConfirmationRepo.getLatestForWorker(w.id, emergency.id);
+      // 지난 회차(초기화 이전)의 확인 기록은 이번 현황에 넣지 않는다.
+      if (latestConfirmation && SiteResetRepo.isBeforeReset(latestConfirmation.confirmedAt)) {
+        latestConfirmation = null;
+      }
       var status = latestConfirmation ? latestConfirmation.confirmType : 'none';
       return {
         workerId: w.id,

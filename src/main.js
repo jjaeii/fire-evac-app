@@ -15,6 +15,7 @@
   var AdminRepo = window.App.Repositories.AdminRepository;
   var LogRepo = window.App.Repositories.LogRepository;
   var QrMappingRepo = window.App.Repositories.QrMappingRepository;
+  var SiteResetRepo = window.App.Repositories.SiteResetRepository;
 
   var ZoneService = window.App.Services.ZoneService;
   var EmergencyService = window.App.Services.EmergencyService;
@@ -25,6 +26,7 @@
   var NotificationService = window.App.Services.NotificationService;
   var CameraPermission = window.App.Services.CameraPermissionService;
   var SyncService = window.App.Services.SyncService;
+  var SiteResetService = window.App.Services.SiteResetService;
 
   var CameraPermissionGate = window.App.Components.CameraPermissionGate;
   var AuthGate = window.App.Components.AuthGate;
@@ -39,6 +41,7 @@
   var EmergencyStageSelector = window.App.Components.EmergencyStageSelector;
   var FloorPlanPanel = window.App.Components.FloorPlanPanel;
   var EmergencyCallPanel = window.App.Components.EmergencyCallPanel;
+  var SiteResetPanel = window.App.Components.SiteResetPanel;
   var AdminNotifyPanel = window.App.Components.AdminNotifyPanel;
   var BlockedRouteSelector = window.App.Components.BlockedRouteSelector;
   var WorkerEvacuationTable = window.App.Components.WorkerEvacuationTable;
@@ -51,15 +54,16 @@
   var NOTIFICATION_LEVELS = window.App.Constants.NOTIFICATION_LEVELS;
   var TARGET_ALL = window.App.Constants.NOTIFICATION_TARGET_ALL;
 
-  var transientFeedback = { auth: null, qr: null, confirm: null, stage: null, blocked: null, restore: null, qrBind: null, notify: null };
+  var transientFeedback = { auth: null, qr: null, confirm: null, stage: null, blocked: null, restore: null, qrBind: null, notify: null, reset: null };
   var authUi = { mode: 'signup', draftName: '', draftBirthDate: '', draftRole: 'worker' };
+  var resetUi = { armed: false };  // 현장 초기화는 두 번 눌러야 실행된다
   var unknownQrValue = null;   // 읽었지만 구역을 모르는 QR
   var callLogged = false;
   var notifyDraft = { target: TARGET_ALL, message: '', level: NOTIFICATION_LEVELS.NORMAL };
   var seenNotificationIds = {}; // workerId -> 마지막으로 소리를 낸 알림 id 집합
 
   function clearFeedback() {
-    transientFeedback = { auth: null, qr: null, confirm: null, stage: null, blocked: null, restore: null, qrBind: null, notify: null };
+    transientFeedback = { auth: null, qr: null, confirm: null, stage: null, blocked: null, restore: null, qrBind: null, notify: null, reset: null };
   }
 
   // ---------------------------------------------------------------- 카메라 권한 게이트
@@ -700,6 +704,35 @@
       }
     });
 
+    // 다음 회차를 깨끗하게 시작하기 위한 초기화
+    var resetContainer = document.createElement('div');
+    root.appendChild(resetContainer);
+    SiteResetPanel.render(resetContainer, {
+      armed: resetUi.armed,
+      onSiteCount: WorkerRepo.getOnSite().length,
+      adminName: (currentWorker && currentWorker.name) || admin.name,
+      lastClearedAt: SiteResetRepo.get().clearedAt,
+      feedbackMessage: transientFeedback.reset ? transientFeedback.reset.message : null,
+      feedbackOk: transientFeedback.reset ? transientFeedback.reset.ok : null,
+      onArm: function () { resetUi.armed = true; transientFeedback.reset = null; renderAll(true); },
+      onCancel: function () { resetUi.armed = false; renderAll(true); },
+      onReset: function () {
+        var traceId = TraceIdFactory.create();
+        var result = SiteResetService.resetSite({
+          adminId: admin.id,
+          keepWorkerId: currentWorker ? currentWorker.id : null,
+          traceId: traceId
+        });
+        resetUi.armed = false;
+        if (result.ok) {
+          transientFeedback.reset = { ok: true, message: '초기화했습니다. 현장 인원 ' + result.clearedCount + '명을 퇴장 처리했습니다.' };
+        } else {
+          transientFeedback.reset = { ok: false, message: result.error.message };
+        }
+        renderAll(true);
+      }
+    });
+
     var logContainer = document.createElement('div');
     root.appendChild(logContainer);
     LogPanel.render(logContainer, {
@@ -713,7 +746,7 @@
   // 다른 기기·다른 탭에서 저장소가 바뀌었는지 판별하는 값.
   var WATCHED_KEYS = [
     'emergency', 'workers', 'blocked_routes', 'worker_confirmations',
-    'qr_zone_mappings', 'session', 'notifications', 'notification_reads'
+    'qr_zone_mappings', 'session', 'notifications', 'notification_reads', 'site_reset'
   ];
 
   function storageFingerprint() {

@@ -70,10 +70,13 @@ window.App.Services.NotificationService = (function () {
   }
 
   // 이 작업자가 받아야 할 알림. 전체 대상이거나 지금 있는 구역 대상인 것만.
+  // 현장 초기화 이전에 보낸 알림은 지난 회차이므로 제외한다.
   function getForWorker(workerId) {
     var worker = WorkerRepo.getById(workerId);
     if (!worker) return [];
+    var SiteResetRepo = window.App.Repositories.SiteResetRepository;
     return NotificationRepo.getAll().filter(function (n) {
+      if (SiteResetRepo.isBeforeReset(n.createdAt)) return false;
       if (!n.targetWorkZoneId) return true;
       return n.targetWorkZoneId === worker.currentWorkZoneId;
     });
@@ -102,9 +105,12 @@ window.App.Services.NotificationService = (function () {
     return { ok: true };
   }
 
-  // 관리자 화면용: 최근 알림 + 확인 인원 수
+  // 관리자 화면용: 최근 알림 + 확인 인원 수 (초기화 이전 것은 제외)
   function getRecentWithReadCount(limit) {
-    return NotificationRepo.getRecent(limit).map(function (n) {
+    var SiteResetRepo = window.App.Repositories.SiteResetRepository;
+    return NotificationRepo.getRecent(limit).filter(function (n) {
+      return !SiteResetRepo.isBeforeReset(n.createdAt);
+    }).map(function (n) {
       var zone = n.targetWorkZoneId ? WorkZoneRepo.getById(n.targetWorkZoneId) : null;
       return {
         id: n.id,
