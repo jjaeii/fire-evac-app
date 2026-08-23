@@ -6,8 +6,9 @@ cd "$(dirname "$0")/.."
 OUT="dist/fire-evac-artifact.html"
 mkdir -p dist
 
-CSS=$(grep -o 'href="src/[^"]*\.css"' index.html | sed 's/href="//; s/"//')
-JS=$(grep -o 'src="src/[^"]*\.js"' index.html | sed 's/src="//; s/"//')
+# index.html의 주소에는 캐시 무효화용 ?v=... 이 붙어 있다. 파일 경로만 뽑는다.
+CSS=$(grep -oE 'href="src/[^"]+\.css(\?v=[^"]*)?"' index.html | sed -E 's/^href="//; s/"$//; s/\?v=.*$//')
+JS=$(grep -oE 'src="src/[^"]+\.js(\?v=[^"]*)?"' index.html | sed -E 's/^src="//; s/"$//; s/\?v=.*$//')
 
 {
   echo '<title>제조공장 화재 대피 안내</title>'
