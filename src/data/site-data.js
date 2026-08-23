@@ -53,13 +53,24 @@ window.App.Data.SITE = {
   },
 
   // 기본 QR 문자열 → 작업구역.
-  // SECTOR-A/B/C는 현장에 붙이는 QR 스티커 3종의 내용이다(A 스티커는 실제로 디코딩해 확인).
+  //
+  // 현장에서 쓰는 스티커 3종은 실제 이미지를 디코딩해 확인한 값이다
+  // (assets/images/qr-a.png, qr-b.png, qr-c.png):
+  //   A: SECTOR-A          B: FACTORY-ZONE-B      C: FACTORY-ZONE-C
+  // 세 장이 서로 다른 형식으로 만들어져 있어 형식을 통일해 추측할 수 없다.
+  //
   // 대소문자와 -, _, 공백 차이는 QrMappingRepository가 흡수한다.
-  // 다른 내용의 QR을 쓰려면 관리자 화면 "구역 QR 코드 등록"에서 스캔해 연결한다.
+  // 여기 없는 QR을 찍으면 화면에서 구역을 골라 바로 연결할 수 있다.
   defaultQrToWorkZone: {
+    // 현장 스티커 (디코딩 확인됨)
     'SECTOR-A': 'zone_a',
+    'FACTORY-ZONE-B': 'zone_b',
+    'FACTORY-ZONE-C': 'zone_c',
+
+    // 같은 계열의 다른 표기도 함께 받아둔다
     'SECTOR-B': 'zone_b',
     'SECTOR-C': 'zone_c',
+    'FACTORY-ZONE-A': 'zone_a',
     'QR-A': 'zone_a',
     'QR-B': 'zone_b',
     'QR-C': 'zone_c',
