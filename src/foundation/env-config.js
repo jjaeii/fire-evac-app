@@ -21,6 +21,12 @@ window.App.Foundation.EnvConfig = Object.freeze({
   SYNC_API_BASE: 'api',
   // 인터넷 어디서나 여러 기기가 연동되게 하려면 여기에 Firebase Realtime Database
   // 주소를 넣는다. 예: 'https://내프로젝트-default-rtdb.firebaseio.com'
-  // 비어 있으면 위 SYNC_API_BASE(로컬 서버)를 쓰고, 그것도 없으면 기기 저장으로 동작한다.
-  SYNC_REMOTE_BASE: ''
+  // 계정이 있는 비공개 저장소를 쓰고 싶을 때 이 쪽을 채운다.
+  SYNC_REMOTE_BASE: '',
+
+  // 계정 없이 여러 기기를 연동하는 경로 (ntfy.sh 공개 푸시 서비스).
+  // 주제 이름을 아는 사람은 이 데이터를 볼 수 있으므로, 데모용으로만 쓴다.
+  // 비우면 이 경로를 쓰지 않는다.
+  SYNC_NTFY_HOST: 'https://ntfy.sh',
+  SYNC_NTFY_TOPIC: 'fireevac-939b1d0dc389548aa4df667d'
 });

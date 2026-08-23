@@ -58,6 +58,111 @@ window.App.Services.SyncService = (function () {
   //   2) Firebase Realtime Database - 인터넷 어디서나 연동 (여러 사람 폰)
   // EnvConfig.SYNC_REMOTE_BASE가 채워져 있으면 2번을 쓴다.
   // ----------------------------------------------------------------
+  // ----------------------------------------------------------------
+  // ntfy.sh 경로 (계정 없이 여러 기기 연동)
+  //
+  // 받기: 주제를 SSE로 구독한다. 관리자가 화재를 걸면 즉시 밀려온다.
+  // 보내기: 바뀐 것만 한 건씩 올린다. 메시지 크기 제한(4KB)이 있어서
+  //         union 키는 전체 배열이 아니라 달라진 항목만 보낸다.
+  // ----------------------------------------------------------------
+  var ntfy = { cache: {}, source: null, primed: false };
+
+  function ntfyTopic() {
+    return String(EnvConfig.SYNC_NTFY_TOPIC || '').trim();
+  }
+
+  // 같은 Wi-Fi에서 PC 서버로 열었으면 그쪽이 빠르고 데이터도 밖으로 나가지 않는다.
+  // 정적 호스팅(GitHub Pages)이라 /api가 없을 때만 ntfy로 넘어간다.
+  var ntfyFallback = false;
+
+  function usingNtfy() {
+    return !usingRemote() && ntfyTopic() !== '' && ntfyFallback;
+  }
+
+  function ntfyUrl(suffix) {
+    return String(EnvConfig.SYNC_NTFY_HOST || '').replace(/\/+$/, '') + '/' + ntfyTopic() + (suffix || '');
+  }
+
+  function ntfyApply(payload) {
+    if (!payload || !payload.key || ALL_KEYS.indexOf(payload.key) === -1) return;
+    var key = payload.key;
+    var incoming = payload.d === undefined ? null : payload.d;
+    var version = typeof payload.v === 'number' ? payload.v : 1;
+    var prev = ntfy.cache[key];
+
+    if (UNION_KEYS[key]) {
+      // 항목 단위로 합친다. 누가 먼저 보냈는지와 무관하게 결과가 같다.
+      var merged = unionMerge(key, prev ? prev.d : [], incoming);
+      ntfy.cache[key] = { v: Math.max(version, prev ? prev.v : 1), d: merged };
+      return;
+    }
+
+    if (!prev || version >= prev.v) {
+      ntfy.cache[key] = { v: version, d: incoming };
+    }
+  }
+
+  function ntfyPrime() {
+    // 이미 올라와 있는 기록을 먼저 받아 현재 상태를 만든다.
+    return fetch(ntfyUrl('/json?poll=1&since=all'), { cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('ntfy ' + res.status);
+        return res.text();
+      })
+      .then(function (text) {
+        text.split('\n').forEach(function (line) {
+          if (!line.trim()) return;
+          try {
+            var m = JSON.parse(line);
+            if (m.event === 'message' && m.message) ntfyApply(JSON.parse(m.message));
+          } catch (e) { /* 못 읽는 메시지는 건너뛴다 */ }
+        });
+        ntfy.primed = true;
+      });
+  }
+
+  function ntfySubscribe() {
+    if (ntfy.source || typeof EventSource === 'undefined') return;
+    try {
+      ntfy.source = new EventSource(ntfyUrl('/sse'));
+    } catch (e) {
+      ntfy.source = null;
+      return;
+    }
+    ntfy.source.onmessage = function (evt) {
+      try {
+        var m = JSON.parse(evt.data);
+        if (m.event !== 'message' || !m.message) return;
+        ntfyApply(JSON.parse(m.message));
+      } catch (e) { return; }
+      // 밀려온 변화를 곧바로 화면에 반영한다.
+      syncOnce(false);
+    };
+    ntfy.source.onerror = function () {
+      // EventSource가 알아서 다시 연결한다. 끊긴 동안은 주기 폴링이 받쳐준다.
+    };
+  }
+
+  function ntfyKeys() {
+    var keys = {};
+    ALL_KEYS.forEach(function (k) {
+      var entry = ntfy.cache[k];
+      keys[k] = { v: entry ? entry.v : 1, d: entry ? entry.d : null };
+    });
+    return keys;
+  }
+
+  // union 키에서 서버 쪽에 없거나 달라진 항목만 골라낸다.
+  function unionDelta(key, merged) {
+    var rule = UNION_KEYS[key];
+    var cached = ntfy.cache[key] && Array.isArray(ntfy.cache[key].d) ? ntfy.cache[key].d : [];
+    var known = {};
+    cached.forEach(function (item) { known[rule.by(item)] = canonical(item); });
+    return (merged || []).filter(function (item) {
+      return known[rule.by(item)] !== canonical(item);
+    });
+  }
+
   function remoteBase() {
     var base = String(EnvConfig.SYNC_REMOTE_BASE || '').trim();
     return base ? base.replace(/\/+$/, '') : '';
@@ -73,6 +178,14 @@ window.App.Services.SyncService = (function () {
 
   // 서버에서 전체 상태를 받아 {keys: {key: {v, d}}} 형태로 맞춘다.
   function backendGet() {
+    if (usingNtfy()) {
+      var ready = ntfy.primed ? Promise.resolve() : ntfyPrime();
+      return ready.then(function () {
+        ntfySubscribe();
+        return { keys: ntfyKeys() };
+      });
+    }
+
     if (usingRemote()) {
       return fetch(remoteRoot() + '.json', { method: 'GET', cache: 'no-store' })
         .then(function (res) {
@@ -96,8 +209,12 @@ window.App.Services.SyncService = (function () {
     return fetch(apiUrl('/state'), { method: 'GET', cache: 'no-store' })
       .then(function (res) {
         // 404/405 = 정적 호스팅에 올린 경우. 서버가 응답은 하지만 공유 API가 없다.
-        // 이때는 끊긴 게 아니라 "처음부터 없는" 것이므로 동기화를 접고 기기 저장으로 간다.
+        // ntfy 주제가 설정돼 있으면 그쪽으로 넘어가고, 없으면 기기 저장으로 간다.
         if (res.status === 404 || res.status === 405 || res.status === 501) {
+          if (ntfyTopic() !== '') {
+            ntfyFallback = true;
+            throw new Error('switch to ntfy');
+          }
           noApiHere = true;
           stop();
           throw new Error('no sync api');
@@ -108,6 +225,26 @@ window.App.Services.SyncService = (function () {
   }
 
   function backendPut(key, value, baseVersion) {
+    if (usingNtfy()) {
+      var version = baseVersion + 1;
+      // union 키는 달라진 항목만 보낸다(메시지 크기 제한).
+      var body = UNION_KEYS[key] ? unionDelta(key, value) : value;
+      if (UNION_KEYS[key] && body.length === 0) return Promise.resolve(true);
+
+      return fetch(ntfyUrl(''), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: key, v: version, d: body })
+      }).then(function (res) {
+        if (res.ok) {
+          // 우리가 보낸 것도 캐시에 반영해 다음 비교의 기준으로 삼는다.
+          ntfyApply({ key: key, v: version, d: body });
+          serverVersions[key] = version;
+        }
+        return res.ok;
+      });
+    }
+
     if (usingRemote()) {
       return fetch(remoteRoot() + '/' + key + '.json', {
         method: 'PUT',
@@ -286,6 +423,10 @@ window.App.Services.SyncService = (function () {
   function stop() {
     if (timer) window.clearInterval(timer);
     timer = null;
+    if (ntfy.source) {
+      try { ntfy.source.close(); } catch (e) {}
+      ntfy.source = null;
+    }
     status.enabled = false;
   }
 
@@ -294,7 +435,7 @@ window.App.Services.SyncService = (function () {
       enabled: status.enabled,
       online: status.online,
       noApi: noApiHere,
-      remote: usingRemote(),
+      remote: usingRemote() || usingNtfy(),
       lastSyncAt: status.lastSyncAt,
       lastError: status.lastError
     };
