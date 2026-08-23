@@ -109,14 +109,21 @@
   function maybeShowCameraGate() {
     if (!CameraPermission.needsPrompt() || CameraPermissionGate.isShowing()) return;
 
-    // 눌러보고 실패하는 대신, 이미 막힌 창이면 처음부터 이유를 보여준다.
-    // 대신 열 주소를 정확히 쓰려면 서버 정보를 먼저 받아야 한다.
-    CameraPermission.loadServerInfo()
-      .then(CameraPermission.precheck)
-      .then(function (result) {
-        cameraGateBlock = result.block;
-        showCameraGate();
-      });
+    // 브라우저가 이미 카메라를 허용해 뒀으면 아무것도 묻지 않는다.
+    CameraPermission.adoptBrowserGrant().then(function (adopted) {
+      if (adopted) {
+        renderAll(true);
+        return;
+      }
+      // 눌러보고 실패하는 대신, 이미 막힌 창이면 처음부터 이유를 보여준다.
+      // 대신 열 주소를 정확히 쓰려면 서버 정보를 먼저 받아야 한다.
+      CameraPermission.loadServerInfo()
+        .then(CameraPermission.precheck)
+        .then(function (result) {
+          cameraGateBlock = result.block;
+          showCameraGate();
+        });
+    });
   }
 
   function reopenCameraGate() {
@@ -763,6 +770,10 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     // 이미 로그인된 상태로 앱을 다시 켠 경우, 그동안 쌓인 알림으로 소리를 내지 않는다.
+    // 휴대폰은 화면을 만지기 전에는 소리를 내주지 않는다.
+    // 어떤 터치에서든 오디오를 열어둬서, 경보가 울려야 할 때 이미 준비된 상태가 되게 한다.
+    Alarm.installUnlockHandlers();
+
     // 다른 기기와 현장 상태를 맞춘다(서버가 없으면 조용히 기기 저장으로만 동작).
     SyncService.start();
     // 카메라가 막혔을 때 "이 주소로 여세요"를 정확히 안내하려면 서버 주소를 알아야 한다.

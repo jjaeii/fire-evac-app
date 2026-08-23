@@ -12,11 +12,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>제조공장 화재 대피 안내</title>
-  <link rel="stylesheet" href="src/styles.css?v=20260823a" />
-  <link rel="stylesheet" href="src/styles.v2.css?v=20260823a" />
-  <link rel="stylesheet" href="src/styles.v3.css?v=20260823a" />
-  <link rel="stylesheet" href="src/styles.v4.css?v=20260823a" />
-  <link rel="stylesheet" href="src/styles.v5.css?v=20260823a" />
+  <link rel="stylesheet" href="src/styles.css?v=20260823b" />
+  <link rel="stylesheet" href="src/styles.v2.css?v=20260823b" />
+  <link rel="stylesheet" href="src/styles.v3.css?v=20260823b" />
+  <link rel="stylesheet" href="src/styles.v4.css?v=20260823b" />
+  <link rel="stylesheet" href="src/styles.v5.css?v=20260823b" />
 </head>
 <body>
   <div class="app-shell">
@@ -31,81 +31,81 @@
   </div>
 
   <!-- 외부 라이브러리: QR 디코더 (jsQR, MIT) -->
-  <script src="src/vendor/jsqr.js?v=20260823a"></script>
+  <script src="src/vendor/jsqr.js?v=20260823b"></script>
 
   <!-- L3 기반층: 상수 -->
-  <script src="src/constants/fire-stages.js?v=20260823a"></script>
-  <script src="src/constants/confirm-types.js?v=20260823a"></script>
-  <script src="src/constants/messages.js?v=20260823a"></script>
-  <script src="src/constants/notification-types.js?v=20260823a"></script>
-  <script src="src/constants/design-tokens.js?v=20260823a"></script>
+  <script src="src/constants/fire-stages.js?v=20260823b"></script>
+  <script src="src/constants/confirm-types.js?v=20260823b"></script>
+  <script src="src/constants/messages.js?v=20260823b"></script>
+  <script src="src/constants/notification-types.js?v=20260823b"></script>
+  <script src="src/constants/design-tokens.js?v=20260823b"></script>
 
   <!-- L2 자료층: 현장 기준 데이터 -->
-  <script src="src/data/site-data.js?v=20260823a"></script>
+  <script src="src/data/site-data.js?v=20260823b"></script>
 
   <!-- L3 기반층: 기반 유틸리티 -->
-  <script src="src/foundation/trace-id-factory.js?v=20260823a"></script>
-  <script src="src/foundation/env-config.js?v=20260823a"></script>
-  <script src="src/foundation/html-escape.js?v=20260823a"></script>
-  <script src="src/foundation/alarm-sound.js?v=20260823a"></script>
+  <script src="src/foundation/trace-id-factory.js?v=20260823b"></script>
+  <script src="src/foundation/env-config.js?v=20260823b"></script>
+  <script src="src/foundation/html-escape.js?v=20260823b"></script>
+  <script src="src/foundation/alarm-sound.js?v=20260823b"></script>
 
   <!-- L2 자료층: 어댑터 -->
-  <script src="src/adapters/local-storage-adapter.js?v=20260823a"></script>
+  <script src="src/adapters/local-storage-adapter.js?v=20260823b"></script>
 
   <!-- L2 자료층: 저장소 (Logger가 LogRepository를 참조하므로 먼저 로드) -->
-  <script src="src/repositories/log-repository.js?v=20260823a"></script>
-  <script src="src/repositories/qr-mapping-repository.js?v=20260823a"></script>
-  <script src="src/repositories/session-repository.js?v=20260823a"></script>
-  <script src="src/repositories/worker-repository.js?v=20260823a"></script>
-  <script src="src/repositories/admin-repository.js?v=20260823a"></script>
-  <script src="src/repositories/work-zone-repository.js?v=20260823a"></script>
-  <script src="src/repositories/exit-repository.js?v=20260823a"></script>
-  <script src="src/repositories/evacuation-route-repository.js?v=20260823a"></script>
-  <script src="src/repositories/emergency-repository.js?v=20260823a"></script>
-  <script src="src/repositories/blocked-route-repository.js?v=20260823a"></script>
-  <script src="src/repositories/worker-confirmation-repository.js?v=20260823a"></script>
-  <script src="src/repositories/notification-repository.js?v=20260823a"></script>
+  <script src="src/repositories/log-repository.js?v=20260823b"></script>
+  <script src="src/repositories/qr-mapping-repository.js?v=20260823b"></script>
+  <script src="src/repositories/session-repository.js?v=20260823b"></script>
+  <script src="src/repositories/worker-repository.js?v=20260823b"></script>
+  <script src="src/repositories/admin-repository.js?v=20260823b"></script>
+  <script src="src/repositories/work-zone-repository.js?v=20260823b"></script>
+  <script src="src/repositories/exit-repository.js?v=20260823b"></script>
+  <script src="src/repositories/evacuation-route-repository.js?v=20260823b"></script>
+  <script src="src/repositories/emergency-repository.js?v=20260823b"></script>
+  <script src="src/repositories/blocked-route-repository.js?v=20260823b"></script>
+  <script src="src/repositories/worker-confirmation-repository.js?v=20260823b"></script>
+  <script src="src/repositories/notification-repository.js?v=20260823b"></script>
 
   <!-- L3 기반층: Logger, ErrorHandler (저장소 이후 로드) -->
-  <script src="src/foundation/logger.js?v=20260823a"></script>
-  <script src="src/foundation/error-handler.js?v=20260823a"></script>
+  <script src="src/foundation/logger.js?v=20260823b"></script>
+  <script src="src/foundation/error-handler.js?v=20260823b"></script>
 
   <!-- L1 기능층: 서비스 -->
-  <script src="src/services/app-state-service.js?v=20260823a"></script>
-  <script src="src/services/sync-service.js?v=20260823a"></script>
-  <script src="src/services/camera-permission-service.js?v=20260823a"></script>
-  <script src="src/services/qr-decode-service.js?v=20260823a"></script>
-  <script src="src/services/worker-identity-service.js?v=20260823a"></script>
-  <script src="src/services/zone-service.js?v=20260823a"></script>
-  <script src="src/services/emergency-service.js?v=20260823a"></script>
-  <script src="src/services/evacuation-service.js?v=20260823a"></script>
-  <script src="src/services/confirmation-service.js?v=20260823a"></script>
-  <script src="src/services/admin-status-service.js?v=20260823a"></script>
-  <script src="src/services/notification-service.js?v=20260823a"></script>
+  <script src="src/services/app-state-service.js?v=20260823b"></script>
+  <script src="src/services/sync-service.js?v=20260823b"></script>
+  <script src="src/services/camera-permission-service.js?v=20260823b"></script>
+  <script src="src/services/qr-decode-service.js?v=20260823b"></script>
+  <script src="src/services/worker-identity-service.js?v=20260823b"></script>
+  <script src="src/services/zone-service.js?v=20260823b"></script>
+  <script src="src/services/emergency-service.js?v=20260823b"></script>
+  <script src="src/services/evacuation-service.js?v=20260823b"></script>
+  <script src="src/services/confirmation-service.js?v=20260823b"></script>
+  <script src="src/services/admin-status-service.js?v=20260823b"></script>
+  <script src="src/services/notification-service.js?v=20260823b"></script>
 
   <!-- L0 화면층: 컴포넌트 -->
-  <script src="src/components/camera-permission-gate.js?v=20260823a"></script>
-  <script src="src/components/auth-gate.js?v=20260823a"></script>
-  <script src="src/components/notification-banner.js?v=20260823a"></script>
-  <script src="src/components/qr-scanner-overlay.js?v=20260823a"></script>
-  <script src="src/components/qr-scan-panel.js?v=20260823a"></script>
-  <script src="src/components/work-zone-status-card.js?v=20260823a"></script>
-  <script src="src/components/fire-stage-badge.js?v=20260823a"></script>
-  <script src="src/components/safety-message-box.js?v=20260823a"></script>
-  <script src="src/components/evacuation-info-panel.js?v=20260823a"></script>
-  <script src="src/components/worker-confirm-button.js?v=20260823a"></script>
-  <script src="src/components/fire-alert-overlay.js?v=20260823a"></script>
-  <script src="src/components/emergency-stage-selector.js?v=20260823a"></script>
-  <script src="src/components/floor-plan-panel.js?v=20260823a"></script>
-  <script src="src/components/emergency-call-panel.js?v=20260823a"></script>
-  <script src="src/components/admin-notify-panel.js?v=20260823a"></script>
-  <script src="src/components/blocked-route-selector.js?v=20260823a"></script>
-  <script src="src/components/worker-evacuation-table.js?v=20260823a"></script>
-  <script src="src/components/zone-qr-binding-panel.js?v=20260823a"></script>
-  <script src="src/components/restore-status-button.js?v=20260823a"></script>
-  <script src="src/components/log-panel.js?v=20260823a"></script>
+  <script src="src/components/camera-permission-gate.js?v=20260823b"></script>
+  <script src="src/components/auth-gate.js?v=20260823b"></script>
+  <script src="src/components/notification-banner.js?v=20260823b"></script>
+  <script src="src/components/qr-scanner-overlay.js?v=20260823b"></script>
+  <script src="src/components/qr-scan-panel.js?v=20260823b"></script>
+  <script src="src/components/work-zone-status-card.js?v=20260823b"></script>
+  <script src="src/components/fire-stage-badge.js?v=20260823b"></script>
+  <script src="src/components/safety-message-box.js?v=20260823b"></script>
+  <script src="src/components/evacuation-info-panel.js?v=20260823b"></script>
+  <script src="src/components/worker-confirm-button.js?v=20260823b"></script>
+  <script src="src/components/fire-alert-overlay.js?v=20260823b"></script>
+  <script src="src/components/emergency-stage-selector.js?v=20260823b"></script>
+  <script src="src/components/floor-plan-panel.js?v=20260823b"></script>
+  <script src="src/components/emergency-call-panel.js?v=20260823b"></script>
+  <script src="src/components/admin-notify-panel.js?v=20260823b"></script>
+  <script src="src/components/blocked-route-selector.js?v=20260823b"></script>
+  <script src="src/components/worker-evacuation-table.js?v=20260823b"></script>
+  <script src="src/components/zone-qr-binding-panel.js?v=20260823b"></script>
+  <script src="src/components/restore-status-button.js?v=20260823b"></script>
+  <script src="src/components/log-panel.js?v=20260823b"></script>
 
   <!-- 라우터 / 초기 연결 -->
-  <script src="src/main.js?v=20260823a"></script>
+  <script src="src/main.js?v=20260823b"></script>
 </body>
 </html>

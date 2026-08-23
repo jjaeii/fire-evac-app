@@ -53,6 +53,10 @@ window.App.Components.AdminNotifyPanel = (function () {
 
     html += '<button class="btn btn-primary" id="notify-send-btn">알림 보내기</button>';
 
+    // 발표·점검 전에 이 기기에서 경보음이 실제로 나는지 확인하는 용도.
+    html += '<button class="btn btn-secondary btn-siren-test" id="siren-test-btn">🔊 경보음 테스트 (2초)</button>';
+    html += '<p class="siren-test-note">소리가 안 나면 기기 음량과 무음 모드를 확인하세요. 아이폰은 측면 무음 스위치가 켜져 있으면 소리가 나지 않습니다.</p>';
+
     if (props.feedbackMessage) {
       html += '<div class="feedback ' + (props.feedbackOk ? 'feedback-ok' : 'feedback-error') + '">' + esc(props.feedbackMessage) + '</div>';
     }
@@ -94,6 +98,10 @@ window.App.Components.AdminNotifyPanel = (function () {
       btn.addEventListener('click', function () {
         props.onDraftChange('level', btn.getAttribute('data-level'));
       });
+    });
+
+    container.querySelector('#siren-test-btn').addEventListener('click', function () {
+      window.App.Foundation.AlarmSound.test();
     });
 
     container.querySelector('#notify-send-btn').addEventListener('click', function () {

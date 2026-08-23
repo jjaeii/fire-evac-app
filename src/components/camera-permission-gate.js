@@ -54,10 +54,10 @@ window.App.Components.CameraPermissionGate = (function () {
     }
 
     html += '<div class="cpg-actions">';
-    html += '<button class="cpg-btn cpg-btn-primary" id="cpg-session-btn"' + (env.ok ? '' : ' disabled') + '>' +
-      '앱을 사용하는 동안 허용<span class="cpg-btn-sub">권장 · 앱을 닫으면 다시 물어봅니다</span></button>';
-    html += '<button class="cpg-btn cpg-btn-strong" id="cpg-always-btn"' + (env.ok ? '' : ' disabled') + '>' +
-      '항상 허용<span class="cpg-btn-sub">다시 묻지 않습니다</span></button>';
+    html += '<button class="cpg-btn cpg-btn-primary" id="cpg-always-btn"' + (env.ok ? '' : ' disabled') + '>' +
+      '항상 허용<span class="cpg-btn-sub">권장 · 이 화면이 다시 뜨지 않습니다</span></button>';
+    html += '<button class="cpg-btn cpg-btn-strong" id="cpg-session-btn"' + (env.ok ? '' : ' disabled') + '>' +
+      '이번만 허용<span class="cpg-btn-sub">앱을 완전히 닫으면 다시 물어봅니다</span></button>';
     html += '<button class="cpg-btn cpg-btn-ghost" id="cpg-deny-btn">' +
       '거부<span class="cpg-btn-sub">사진 인식·직접 입력만 사용</span></button>';
     html += '</div>';

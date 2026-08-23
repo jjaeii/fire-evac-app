@@ -175,6 +175,19 @@ window.App.Services.CameraPermissionService = (function () {
     });
   }
 
+  // 브라우저가 이미 카메라를 허용해 둔 상태면 앱이 다시 물어볼 이유가 없다.
+  // 한 번 "항상 허용"을 누르면 그다음부터는 이 앱 화면이 뜨지 않는다.
+  function adoptBrowserGrant() {
+    if (getStoredChoice() !== null) return Promise.resolve(false);
+    return queryBrowserPermission().then(function (state) {
+      if (state === 'granted') {
+        saveChoice(CHOICES.ALWAYS);
+        return true;
+      }
+      return false;
+    });
+  }
+
   // 실제 브라우저 권한 팝업을 띄운다. 사용자의 조작(버튼 클릭) 안에서 불러야 한다.
   function requestBrowserPermission(traceId) {
     var env = checkEnvironment();
@@ -252,6 +265,7 @@ window.App.Services.CameraPermissionService = (function () {
     getAlternateUrls: getAlternateUrls,
     describeBlock: describeBlock,
     precheck: precheck,
+    adoptBrowserGrant: adoptBrowserGrant,
     choose: choose,
     reset: reset
   };

@@ -347,3 +347,6 @@
   opacity: 0.85;
   overflow-wrap: anywhere;
 }
+
+.btn-siren-test { width: 100%; margin-top: 8px; font-size: 13.5px; }
+.siren-test-note { margin: 8px 0 0; font-size: 11px; line-height: 1.5; color: var(--color-text-dim); }

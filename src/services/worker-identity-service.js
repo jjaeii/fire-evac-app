@@ -63,15 +63,18 @@ window.App.Services.WorkerIdentityService = (function () {
     return { ok: true, name: cleanName, birthDate: birth.value };
   }
 
-  function startSession(worker, traceId, eventName, logMessage) {
-    var result = WorkerRepo.update(worker.id, {
+  function startSession(worker, traceId, eventName, logMessage, extraPatch) {
+    var patch = {
       isOnSite: true,
       lastLoginAt: new Date().toISOString(),
       loggedOutAt: null,
       currentWorkZoneId: null,
       lastQrScannedAt: null,
       currentConfirmStatus: 'none'
-    });
+    };
+    if (extraPatch) patch = Object.assign(patch, extraPatch);
+
+    var result = WorkerRepo.update(worker.id, patch);
     if (!result.ok) {
       return { ok: false, error: ErrorHandler.handle('STORAGE_WRITE_FAILED', traceId, { workerId: worker.id }) };
     }
@@ -86,15 +89,33 @@ window.App.Services.WorkerIdentityService = (function () {
     var check = validateCredentials(input.name, input.birthDate);
     if (!check.ok) return check;
 
+    var requestedRole = normalizeRole(input.role);
     var existing = WorkerRepo.findByNameAndBirth(check.name, check.birthDate);
     if (existing) {
       // 같은 사람이 다시 가입을 누른 경우. 새 계정을 만들지 않고 그 계정으로 들어간다.
-      var reentry = startSession(existing, traceId, 'worker.loggedIn', '작업자 로그인');
+      // 이때 고른 구분(작업자/관리자)을 반영한다. 예전에 만든 계정에는 role이 없을 수 있다.
+      var reentry = startSession(existing, traceId, 'worker.loggedIn', '작업자 로그인', { role: requestedRole });
       if (!reentry.ok) return reentry;
-      return { ok: true, worker: reentry.worker, wasExisting: true, notice: MESSAGE.SIGNUP_DUPLICATE };
+
+      if (requestedRole === ROLES.ADMIN && !AdminRepo.getById(existing.id)) {
+        AdminRepo.add({
+          id: existing.id,
+          name: check.name,
+          role: 'safety_manager',
+          canAccessAdminPanel: true,
+          registeredAt: new Date().toISOString()
+        });
+      }
+
+      return {
+        ok: true,
+        worker: reentry.worker,
+        wasExisting: true,
+        notice: '이미 등록된 계정입니다. ' + ROLE_LABELS[requestedRole] + '(으)로 로그인했습니다.'
+      };
     }
 
-    var role = normalizeRole(input.role);
+    var role = requestedRole;
     var now = new Date().toISOString();
     var created = WorkerRepo.add({
       id: newWorkerId(),
