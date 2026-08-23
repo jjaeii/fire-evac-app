@@ -356,12 +356,18 @@
       unknownQrValue: unknownQrValue,
       feedbackMessage: transientFeedback.qr ? transientFeedback.qr.message : null,
       feedbackOk: transientFeedback.qr ? transientFeedback.qr.ok : null,
+      feedbackCode: transientFeedback.qr ? transientFeedback.qr.code : null,
       onScan: function (qrValue) {
         var traceId = TraceIdFactory.create();
         var result = ZoneService.registerWorkerZone({ workerId: worker.id, qrValue: qrValue, traceId: traceId });
         if (result.ok) {
           unknownQrValue = null;
-          transientFeedback.qr = { ok: true, message: result.workZone.name + '에서 작업 중으로 등록되었습니다.' };
+          // 어떤 코드로 인식됐는지 같이 보여준다. 현장 QR을 확인·점검할 때 필요하다.
+          transientFeedback.qr = {
+            ok: true,
+            message: result.workZone.name + '에서 작업 중으로 등록되었습니다.',
+            code: String(qrValue || '').trim()
+          };
         } else {
           // 읽기는 됐는데 어느 구역인지 모르는 경우 → 화면에서 바로 연결할 수 있게 값을 넘긴다.
           unknownQrValue = result.unknownQrValue || null;

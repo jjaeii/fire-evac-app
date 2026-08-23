@@ -81,7 +81,12 @@ window.App.Components.QRScanPanel = (function () {
     html += '</details>';
 
     if (props.feedbackMessage) {
-      html += '<div class="feedback ' + (props.feedbackOk ? 'feedback-ok' : 'feedback-error') + '">' + esc(props.feedbackMessage) + '</div>';
+      html += '<div class="feedback ' + (props.feedbackOk ? 'feedback-ok' : 'feedback-error') + '">';
+      html += esc(props.feedbackMessage);
+      if (props.feedbackCode) {
+        html += '<span class="feedback-code">읽은 코드 · ' + esc(props.feedbackCode) + '</span>';
+      }
+      html += '</div>';
     }
 
     // 읽기는 됐지만 어느 구역인지 모르는 QR — 이 자리에서 바로 연결한다.
