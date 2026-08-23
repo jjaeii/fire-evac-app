@@ -52,6 +52,88 @@ window.App.Services.SyncService = (function () {
     return EnvConfig.SYNC_API_BASE + path;
   }
 
+  // ----------------------------------------------------------------
+  // 저장 위치는 두 가지다.
+  //   1) 로컬 서버 (/api/state)      - 같은 Wi-Fi 안에서만 연동
+  //   2) Firebase Realtime Database - 인터넷 어디서나 연동 (여러 사람 폰)
+  // EnvConfig.SYNC_REMOTE_BASE가 채워져 있으면 2번을 쓴다.
+  // ----------------------------------------------------------------
+  function remoteBase() {
+    var base = String(EnvConfig.SYNC_REMOTE_BASE || '').trim();
+    return base ? base.replace(/\/+$/, '') : '';
+  }
+
+  function usingRemote() {
+    return remoteBase() !== '';
+  }
+
+  function remoteRoot() {
+    return remoteBase() + '/fireEvac/state';
+  }
+
+  // 서버에서 전체 상태를 받아 {keys: {key: {v, d}}} 형태로 맞춘다.
+  function backendGet() {
+    if (usingRemote()) {
+      return fetch(remoteRoot() + '.json', { method: 'GET', cache: 'no-store' })
+        .then(function (res) {
+          if (!res.ok) throw new Error('state ' + res.status);
+          return res.json();
+        })
+        .then(function (json) {
+          var keys = {};
+          ALL_KEYS.forEach(function (k) {
+            var entry = json && json[k];
+            keys[k] = {
+              v: entry && typeof entry.v === 'number' ? entry.v : 1,
+              // Firebase는 빈 배열을 저장하지 않고 없는 값으로 돌려준다.
+              d: entry && entry.d !== undefined ? entry.d : null
+            };
+          });
+          return { keys: keys };
+        });
+    }
+
+    return fetch(apiUrl('/state'), { method: 'GET', cache: 'no-store' })
+      .then(function (res) {
+        // 404/405 = 정적 호스팅에 올린 경우. 서버가 응답은 하지만 공유 API가 없다.
+        // 이때는 끊긴 게 아니라 "처음부터 없는" 것이므로 동기화를 접고 기기 저장으로 간다.
+        if (res.status === 404 || res.status === 405 || res.status === 501) {
+          noApiHere = true;
+          stop();
+          throw new Error('no sync api');
+        }
+        if (!res.ok) throw new Error('state ' + res.status);
+        return res.json();
+      });
+  }
+
+  function backendPut(key, value, baseVersion) {
+    if (usingRemote()) {
+      return fetch(remoteRoot() + '/' + key + '.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ v: baseVersion + 1, d: value })
+      }).then(function (res) {
+        if (res.ok) serverVersions[key] = baseVersion + 1;
+        return res.ok;
+      });
+    }
+
+    return fetch(apiUrl('/state/' + key + '?base=' + baseVersion), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(value)
+    }).then(function (res) {
+      return res.json().then(function (json) { return { httpOk: res.ok, json: json }; });
+    }).then(function (result) {
+      if (result.json && typeof result.json.v === 'number') {
+        serverVersions[key] = result.json.v;
+      }
+      // 충돌이면 이번 판은 넘기고 다음 주기에 서버 값을 다시 받아 합친다.
+      return result.json && result.json.ok === true;
+    });
+  }
+
   // 같은 내용인지 비교할 때 쓰는 정규화된 문자열.
   function canonical(value) {
     if (value === null || value === undefined) return 'null';
@@ -114,19 +196,7 @@ window.App.Services.SyncService = (function () {
   }
 
   function put(key, value, baseVersion) {
-    return fetch(apiUrl('/state/' + key + '?base=' + baseVersion), {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(value)
-    }).then(function (res) {
-      return res.json().then(function (json) { return { httpOk: res.ok, json: json }; });
-    }).then(function (result) {
-      if (result.json && typeof result.json.v === 'number') {
-        serverVersions[key] = result.json.v;
-      }
-      // 충돌이면 이번 판은 넘기고 다음 주기에 서버 값을 다시 받아 합친다.
-      return result.json && result.json.ok === true;
-    });
+    return backendPut(key, value, baseVersion);
   }
 
   // 서버가 꺼져 있으면 매초 두드려봐야 콘솔만 지저분해진다. 실패할수록 간격을 늘린다.
@@ -142,18 +212,7 @@ window.App.Services.SyncService = (function () {
     }
     inFlight = true;
 
-    return fetch(apiUrl('/state'), { method: 'GET', cache: 'no-store' })
-      .then(function (res) {
-        // 404/405 = 정적 호스팅에 올린 경우. 서버가 응답은 하지만 공유 API가 없다.
-        // 이때는 끊긴 게 아니라 "처음부터 없는" 것이므로 동기화를 접고 기기 저장으로 간다.
-        if (res.status === 404 || res.status === 405 || res.status === 501) {
-          noApiHere = true;
-          stop();
-          throw new Error('no sync api');
-        }
-        if (!res.ok) throw new Error('state ' + res.status);
-        return res.json();
-      })
+    return backendGet()
       .then(function (payload) {
         status.online = true;
         status.lastError = null;
@@ -235,6 +294,7 @@ window.App.Services.SyncService = (function () {
       enabled: status.enabled,
       online: status.online,
       noApi: noApiHere,
+      remote: usingRemote(),
       lastSyncAt: status.lastSyncAt,
       lastError: status.lastError
     };

@@ -153,7 +153,8 @@
       return '<span class="sync-chip sync-chip-off" title="이 기기 안에서만 저장됩니다">기기 저장</span>';
     }
     if (s.online) {
-      return '<span class="sync-chip sync-chip-on" title="현장 서버와 연결됨 · 다른 기기와 상태를 공유합니다">현장 연결됨</span>';
+      var label = s.remote ? '전체 연결됨' : '현장 연결됨';
+      return '<span class="sync-chip sync-chip-on" title="다른 기기와 상태를 공유하고 있습니다">' + label + '</span>';
     }
     return '<span class="sync-chip sync-chip-down" title="서버에 연결하지 못했습니다. 이 기기 안에서는 계속 동작합니다">연결 끊김</span>';
   }
