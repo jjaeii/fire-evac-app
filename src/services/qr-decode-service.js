@@ -37,6 +37,51 @@ window.App.Services.QrDecodeService = (function () {
     return decodeImageData(imageData);
   }
 
+  // 한 장의 사진에서 여러 방식으로 시도한다.
+  // 휴대폰으로 찍은 QR은 흔들림·기울기·화면 반사 때문에 한 번에 안 읽히는 일이 많아서,
+  // 크기를 바꿔가며 보고 가운데만 잘라서도 본다.
+  function buildAttempts(img) {
+    var longEdge = Math.max(img.width, img.height);
+    var attempts = [];
+
+    // 1) 여러 해상도로 전체 이미지
+    [1400, 900, 2000, 600].forEach(function (edge) {
+      var scale = Math.min(1, edge / longEdge);
+      attempts.push({ scale: scale, crop: 1 });
+    });
+
+    // 2) 가운데만 잘라서 (배경이 넓게 찍힌 사진에 효과적)
+    [0.7, 0.5].forEach(function (crop) {
+      attempts.push({ scale: Math.min(1, 1200 / longEdge), crop: crop });
+    });
+
+    return attempts;
+  }
+
+  function tryDecode(img, attempt) {
+    var srcW = Math.round(img.width * attempt.crop);
+    var srcH = Math.round(img.height * attempt.crop);
+    var srcX = Math.round((img.width - srcW) / 2);
+    var srcY = Math.round((img.height - srcH) / 2);
+
+    var width = Math.max(1, Math.round(srcW * attempt.scale / attempt.crop));
+    var height = Math.max(1, Math.round(srcH * attempt.scale / attempt.crop));
+
+    var canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    var ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, width, height);
+
+    try {
+      return decodeImageData(ctx.getImageData(0, 0, width, height));
+    } catch (e) {
+      return null;
+    }
+  }
+
   // 사진 파일에서 QR을 찾는다. Promise<{ok, value|error}>
   function decodeFromFile(file) {
     return new Promise(function (resolve) {
@@ -51,27 +96,23 @@ window.App.Services.QrDecodeService = (function () {
       img.onload = function () {
         URL.revokeObjectURL(objectUrl);
 
-        var scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(img.width, img.height));
-        var width = Math.max(1, Math.round(img.width * scale));
-        var height = Math.max(1, Math.round(img.height * scale));
-
-        var canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        var ctx = canvas.getContext('2d', { willReadFrequently: true });
-        ctx.drawImage(img, 0, 0, width, height);
-
+        var attempts = buildAttempts(img);
         var value = null;
-        try {
-          value = decodeImageData(ctx.getImageData(0, 0, width, height));
-        } catch (e) {
-          value = null;
+        for (var i = 0; i < attempts.length && !value; i++) {
+          value = tryDecode(img, attempts[i]);
         }
 
         if (value) {
-          resolve({ ok: true, value: value });
+          resolve({ ok: true, value: value, attempts: attempts.length });
         } else {
-          resolve({ ok: false, error: { code: 'QR_NOT_FOUND_IN_IMAGE', message: MESSAGE.QR_NOT_FOUND_IN_IMAGE } });
+          resolve({
+            ok: false,
+            error: {
+              code: 'QR_NOT_FOUND_IN_IMAGE',
+              message: MESSAGE.QR_NOT_FOUND_IN_IMAGE,
+              imageSize: img.width + '×' + img.height
+            }
+          });
         }
       };
 

@@ -38,6 +38,7 @@
   var FireAlertOverlay = window.App.Components.FireAlertOverlay;
   var EmergencyStageSelector = window.App.Components.EmergencyStageSelector;
   var FloorPlanPanel = window.App.Components.FloorPlanPanel;
+  var EmergencyCallPanel = window.App.Components.EmergencyCallPanel;
   var AdminNotifyPanel = window.App.Components.AdminNotifyPanel;
   var BlockedRouteSelector = window.App.Components.BlockedRouteSelector;
   var WorkerEvacuationTable = window.App.Components.WorkerEvacuationTable;
@@ -51,7 +52,9 @@
   var TARGET_ALL = window.App.Constants.NOTIFICATION_TARGET_ALL;
 
   var transientFeedback = { auth: null, qr: null, confirm: null, stage: null, blocked: null, restore: null, qrBind: null, notify: null };
-  var authUi = { mode: 'signup', draftName: '', draftBirthDate: '' };
+  var authUi = { mode: 'signup', draftName: '', draftBirthDate: '', draftRole: 'worker' };
+  var unknownQrValue = null;   // 읽었지만 구역을 모르는 QR
+  var callLogged = false;
   var notifyDraft = { target: TARGET_ALL, message: '', level: NOTIFICATION_LEVELS.NORMAL };
   var seenNotificationIds = {}; // workerId -> 마지막으로 소리를 낸 알림 id 집합
 
@@ -152,14 +155,20 @@
     var state = AppState.getCurrentState();
     var currentWorker = WorkerIdentity.getCurrentWorker();
 
+    // 관리자로 가입한 사람만 관리자 화면에 들어간다.
+    var canSeeAdmin = WorkerIdentity.isAdmin(currentWorker);
+
     var html = '<div class="view-tabs">';
     html += '<button class="view-tab' + (state.currentView === 'worker' ? ' active' : '') + '" id="tab-worker">작업자 화면</button>';
-    html += '<button class="view-tab' + (state.currentView === 'admin' ? ' active' : '') + '" id="tab-admin">관리자 화면</button>';
+    if (canSeeAdmin) {
+      html += '<button class="view-tab' + (state.currentView === 'admin' ? ' active' : '') + '" id="tab-admin">관리자 화면</button>';
+    }
     html += '</div>';
 
     html += '<div class="worker-identity-row">';
-    if (state.currentView === 'worker' && currentWorker) {
-      html += '<span class="worker-identity-chip">' + esc(currentWorker.name) + ' 님 로그인 중</span>';
+    if (currentWorker) {
+      html += '<span class="worker-identity-chip">' + esc(currentWorker.name) + ' · ' +
+        esc(WorkerIdentity.roleLabel(currentWorker)) + '</span>';
     }
     html += renderSyncChip();
     html += '</div>';
@@ -171,11 +180,14 @@
       AppState.setView('worker');
       renderAll(true);
     });
-    root.querySelector('#tab-admin').addEventListener('click', function () {
-      clearFeedback();
-      AppState.setView('admin');
-      renderAll(true);
-    });
+    var adminTab = root.querySelector('#tab-admin');
+    if (adminTab) {
+      adminTab.addEventListener('click', function () {
+        clearFeedback();
+        AppState.setView('admin');
+        renderAll(true);
+      });
+    }
   }
 
   // ---------------------------------------------------------------- 회원가입 / 로그인
@@ -209,9 +221,11 @@
         transientFeedback.auth = null;
         renderAll(true);
       },
+      draftRole: authUi.draftRole,
       onDraftChange: function (field, value) {
         if (field === 'name') authUi.draftName = value;
-        else authUi.draftBirthDate = value;
+        else if (field === 'birthDate') authUi.draftBirthDate = value;
+        else if (field === 'role') { authUi.draftRole = value; renderAll(true); }
       },
       onSubmit: function (input) {
         authUi.draftName = input.name;
@@ -223,7 +237,7 @@
 
         var traceId = TraceIdFactory.create();
         var result = input.mode === 'signup'
-          ? WorkerIdentity.signUp({ name: input.name, birthDate: input.birthDate, traceId: traceId })
+          ? WorkerIdentity.signUp({ name: input.name, birthDate: input.birthDate, role: input.role, traceId: traceId })
           : WorkerIdentity.logIn({ name: input.name, birthDate: input.birthDate, traceId: traceId });
 
         if (result.ok) {
@@ -232,6 +246,8 @@
           transientFeedback.auth = result.notice ? { ok: true, message: result.notice } : null;
           // 로그인 직후에는 이미 와 있던 알림으로 소리를 내지 않는다.
           markAllNotificationsSeen(result.worker.id);
+          // 관리자는 관리자 화면으로 바로 들어간다.
+          AppState.setView(WorkerIdentity.isAdmin(result.worker) ? 'admin' : 'worker');
         } else {
           transientFeedback.auth = { ok: false, message: result.error.message };
         }
@@ -336,19 +352,46 @@
     root.appendChild(qrContainer);
     QRScanPanel.render(qrContainer, {
       currentZoneName: workZone ? workZone.name : null,
+      workZones: WorkZoneRepo.getAll(),
+      unknownQrValue: unknownQrValue,
       feedbackMessage: transientFeedback.qr ? transientFeedback.qr.message : null,
       feedbackOk: transientFeedback.qr ? transientFeedback.qr.ok : null,
       onScan: function (qrValue) {
         var traceId = TraceIdFactory.create();
         var result = ZoneService.registerWorkerZone({ workerId: worker.id, qrValue: qrValue, traceId: traceId });
         if (result.ok) {
+          unknownQrValue = null;
           transientFeedback.qr = { ok: true, message: result.workZone.name + '에서 작업 중으로 등록되었습니다.' };
         } else {
+          // 읽기는 됐는데 어느 구역인지 모르는 경우 → 화면에서 바로 연결할 수 있게 값을 넘긴다.
+          unknownQrValue = result.unknownQrValue || null;
           transientFeedback.qr = { ok: false, message: result.error.message };
         }
         renderAll(true);
       },
+      onBindUnknownQr: function (qrValue, zoneId) {
+        var traceId = TraceIdFactory.create();
+        var zone = WorkZoneRepo.getById(zoneId);
+        var bind = QrMappingRepo.bind(qrValue, zoneId, worker.id);
+        if (!bind.ok || !zone) {
+          transientFeedback.qr = { ok: false, message: MESSAGE.SAVE_FAILED };
+          renderAll(true);
+          return;
+        }
+        window.App.Foundation.Logger.log(
+          'zoneQr.bound', 'worker', worker.id,
+          { qrValue: qrValue, workZoneId: zoneId }, '구역 QR 연결', traceId
+        );
+        unknownQrValue = null;
+        // 연결한 뒤 곧바로 그 구역으로 등록까지 마친다.
+        var reg = ZoneService.registerWorkerZone({ workerId: worker.id, qrValue: qrValue, traceId: TraceIdFactory.create() });
+        transientFeedback.qr = reg.ok
+          ? { ok: true, message: zone.name + ' QR로 등록했습니다. 이제 이 QR은 자동 인식됩니다.' }
+          : { ok: false, message: reg.error.message };
+        renderAll(true);
+      },
       onDecodeError: function (message) {
+        unknownQrValue = null;
         transientFeedback.qr = { ok: false, message: message };
         renderAll(true);
       },
@@ -431,7 +474,9 @@
   }
 
   function renderAdminView(root) {
-    var admin = AdminRepo.getAll()[0];
+    // 로그인한 관리자가 상태 변경·알림 발송의 주체가 된다.
+    var currentWorker = WorkerIdentity.getCurrentWorker();
+    var admin = (currentWorker && AdminRepo.getById(currentWorker.id)) || AdminRepo.getAll()[0];
     var emergency = EmergencyRepo.get();
     var workZones = WorkZoneRepo.getAll();
 
@@ -481,6 +526,25 @@
       rows: rows,
       emergency: emergency,
       blockedExitIds: blockedExitIds
+    });
+
+    // 신고 전화 (확대화재 이상)
+    var affectedZoneForCall = emergency.affectedWorkZoneId ? WorkZoneRepo.getById(emergency.affectedWorkZoneId) : null;
+    var callContainer = document.createElement('div');
+    root.appendChild(callContainer);
+    EmergencyCallPanel.render(callContainer, {
+      emergency: emergency,
+      affectedZoneName: affectedZoneForCall ? affectedZoneForCall.name : null,
+      logged: callLogged,
+      onCallAttempt: function (phone) {
+        var traceId = TraceIdFactory.create();
+        window.App.Foundation.Logger.log(
+          'admin.emergencyCall.attempted', 'admin', admin.id,
+          { phone: phone, fireStage: emergency.fireStage, affectedWorkZoneId: emergency.affectedWorkZoneId },
+          '신고 전화 시도', traceId
+        );
+        callLogged = true;
+      }
     });
 
     // 작업자 알림 보내기

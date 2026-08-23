@@ -20,6 +20,22 @@ window.App.Components.AuthGate = (function () {
 
     html += '<p class="panel-sub auth-sub">' + (isSignup ? MESSAGE.SIGNUP_PROMPT : MESSAGE.LOGIN_PROMPT) + '</p>';
 
+    if (isSignup) {
+      html += '<label class="field-label">구분 <span class="required-mark">*</span></label>';
+      html += '<div class="auth-role-row">';
+      [
+        { value: 'worker', label: '작업자', sub: 'QR로 작업구역 등록 · 대피 안내 수신' },
+        { value: 'admin', label: '안전관리자', sub: '화재 단계 입력 · 도면 현황 · 알림 발송' }
+      ].forEach(function (r) {
+        var active = props.draftRole === r.value ? ' active' : '';
+        html += '<button class="auth-role' + active + '" data-role="' + r.value + '">';
+        html += '<span class="auth-role-name">' + r.label + '</span>';
+        html += '<span class="auth-role-sub">' + r.sub + '</span>';
+        html += '</button>';
+      });
+      html += '</div>';
+    }
+
     html += '<label class="field-label" for="auth-name-input">이름 <span class="required-mark">*</span></label>';
     html += '<input type="text" class="input" id="auth-name-input" maxlength="20" autocomplete="name" ';
     html += 'placeholder="이름" value="' + esc(props.draftName || '') + '" />';
@@ -46,8 +62,19 @@ window.App.Components.AuthGate = (function () {
     var birthInput = container.querySelector('#auth-birth-input');
 
     function submit() {
-      props.onSubmit({ mode: isSignup ? 'signup' : 'login', name: nameInput.value, birthDate: birthInput.value });
+      props.onSubmit({
+        mode: isSignup ? 'signup' : 'login',
+        name: nameInput.value,
+        birthDate: birthInput.value,
+        role: props.draftRole
+      });
     }
+
+    container.querySelectorAll('[data-role]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        props.onDraftChange('role', btn.getAttribute('data-role'));
+      });
+    });
 
     container.querySelector('#auth-submit-btn').addEventListener('click', submit);
     [nameInput, birthInput].forEach(function (el) {

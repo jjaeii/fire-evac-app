@@ -77,6 +77,16 @@ window.App.Components.FireAlertOverlay = (function () {
 
     if (isMajor) {
       html += '<div class="fa-banner fa-banner-major">대형화재 · 안전관리자와 현장 지시에 따라 즉시 대피하세요</div>';
+
+      // 대형화재에서만 신고 전화 버튼을 띄운다. 앱이 자동으로 걸지 않고, 눌러야 전화 앱이 열린다.
+      var contact = window.App.Data.SITE.emergencyContact;
+      if (contact && contact.phone) {
+        html += '<a class="fa-call" href="tel:' + esc(contact.phone.replace(/[^0-9+]/g, '')) + '">';
+        html += '<span class="fa-call-icon" aria-hidden="true">📞</span>';
+        html += '<span class="fa-call-text">' + esc(contact.label) + '<span class="fa-call-num">' + esc(contact.phone) + '</span></span>';
+        html += '</a>';
+        html += '<p class="fa-call-note">' + esc(contact.note) + '</p>';
+      }
     }
 
     html += '<div class="fa-actions">';

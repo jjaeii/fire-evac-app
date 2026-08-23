@@ -43,6 +43,15 @@ window.App.Data.SITE = {
     { id: 'admin_1', name: '안전관리자', role: 'safety_manager', canAccessAdminPanel: true }
   ],
 
+  // 대형화재 단계에서 화면에 뜨는 신고 전화 버튼.
+  // 이 앱은 전화를 자동으로 걸지 않는다. 사람이 눌러야 전화 앱이 열린다.
+  // 실제 운영 시에는 119 또는 현장 방재실 번호로 바꿔 쓴다.
+  emergencyContact: {
+    label: '신고 전화',
+    phone: '010-3198-0768',
+    note: '시연용 번호입니다. 실제 화재 시에는 119로 신고하세요.'
+  },
+
   // 기본 QR 문자열 → 작업구역.
   // SECTOR-A/B/C는 현장에 붙이는 QR 스티커 3종의 내용이다(A 스티커는 실제로 디코딩해 확인).
   // 대소문자와 -, _, 공백 차이는 QrMappingRepository가 흡수한다.

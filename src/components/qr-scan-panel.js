@@ -84,8 +84,28 @@ window.App.Components.QRScanPanel = (function () {
       html += '<div class="feedback ' + (props.feedbackOk ? 'feedback-ok' : 'feedback-error') + '">' + esc(props.feedbackMessage) + '</div>';
     }
 
+    // 읽기는 됐지만 어느 구역인지 모르는 QR — 이 자리에서 바로 연결한다.
+    if (props.unknownQrValue) {
+      html += '<div class="qr-bind-now">';
+      html += '<div class="qr-bind-now-title">이 QR은 아직 구역에 연결되지 않았습니다</div>';
+      html += '<div class="qr-bind-now-code">' + esc(props.unknownQrValue) + '</div>';
+      html += '<div class="qr-bind-now-ask">어느 구역의 QR인가요? 한 번 눌러두면 다음부터 자동 인식됩니다.</div>';
+      html += '<div class="qr-bind-now-row">';
+      props.workZones.forEach(function (z) {
+        html += '<button class="btn btn-bind-zone" data-bind-zone="' + esc(z.id) + '">' + esc(z.name) + '</button>';
+      });
+      html += '</div>';
+      html += '</div>';
+    }
+
     html += '</div>';
     container.innerHTML = html;
+
+    container.querySelectorAll('.btn-bind-zone').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        props.onBindUnknownQr(props.unknownQrValue, btn.getAttribute('data-bind-zone'));
+      });
+    });
 
     var cameraBtn = container.querySelector('#qr-camera-btn');
     if (cameraBtn) {

@@ -275,3 +275,65 @@
   margin-top: 10px;
   font-size: 12.5px;
 }
+
+/* ---- 회원가입 구분(작업자/관리자) ---- */
+.auth-role-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+.auth-role {
+  display: flex; flex-direction: column; gap: 3px;
+  text-align: left; cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  border-radius: 10px; padding: 11px 12px; min-height: 62px;
+}
+.auth-role.active { border-color: var(--accent); background: rgba(255,122,69,0.14); }
+.auth-role-name { font-size: 14px; font-weight: 800; }
+.auth-role.active .auth-role-name { color: var(--accent); }
+.auth-role-sub { font-size: 10.5px; line-height: 1.4; color: var(--color-text-dim); }
+
+/* ---- 모르는 QR을 그 자리에서 구역에 연결 ---- */
+.qr-bind-now {
+  margin-top: 12px; padding: 13px;
+  border: 1px solid rgba(242,183,5,0.5);
+  background: var(--status-caution-bg);
+  border-radius: 12px;
+}
+.qr-bind-now-title { font-size: 13px; font-weight: 800; color: var(--status-caution); margin-bottom: 8px; }
+.qr-bind-now-code {
+  font-family: monospace; font-size: 13px; font-weight: 700;
+  color: var(--color-text); background: var(--color-bg);
+  border: 1px solid var(--color-border); border-radius: 8px;
+  padding: 9px 11px; margin-bottom: 9px; overflow-wrap: anywhere;
+}
+.qr-bind-now-ask { font-size: 12px; line-height: 1.5; color: var(--color-text-dim); margin-bottom: 10px; }
+.qr-bind-now-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.btn-bind-zone {
+  background: var(--accent); color: #1a1006;
+  border: none; font-size: 13px; font-weight: 800;
+}
+
+/* ---- 신고 전화 ---- */
+.call-panel { border-color: rgba(255,85,72,0.45); }
+.call-panel-major { border-color: var(--status-danger); background: var(--status-danger-bg); }
+.call-stage { font-size: 12px; font-weight: 700; color: var(--color-text-dim); margin-bottom: 8px; }
+.call-urgent { font-size: 14px; font-weight: 900; color: var(--status-danger); margin-bottom: 10px; }
+.call-button {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; background: var(--status-danger); color: #fff;
+  font-size: 16px; font-weight: 900; text-decoration: none;
+  padding: 16px; min-height: 56px;
+}
+.call-icon { font-size: 18px; }
+.call-note { margin: 10px 0 0; font-size: 11.5px; line-height: 1.5; color: var(--color-text); }
+.call-note-dim { color: var(--color-text-dim); font-size: 11px; }
+
+.fa-call {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; background: #fff; color: #b3261e;
+  border-radius: 12px; padding: 15px; margin-bottom: 8px;
+  font-weight: 900; text-decoration: none; min-height: 56px;
+}
+.fa-call-icon { font-size: 20px; }
+.fa-call-text { display: flex; flex-direction: column; align-items: flex-start; font-size: 15px; }
+.fa-call-num { font-size: 13px; font-weight: 700; opacity: 0.85; }
+.fa-call-note { margin: 0 0 14px; font-size: 11px; opacity: 0.9; }

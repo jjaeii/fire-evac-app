@@ -11,8 +11,17 @@ window.App.Services.WorkerIdentityService = (function () {
   var ErrorHandler = window.App.Foundation.ErrorHandler;
   var MESSAGE = window.App.Constants.MESSAGE;
 
+  var AdminRepo = window.App.Repositories.AdminRepository;
+
   var MAX_NAME_LENGTH = 20;
   var MIN_BIRTH_YEAR = 1930;
+
+  var ROLES = { WORKER: 'worker', ADMIN: 'admin' };
+  var ROLE_LABELS = { worker: '작업자', admin: '안전관리자' };
+
+  function normalizeRole(role) {
+    return role === ROLES.ADMIN ? ROLES.ADMIN : ROLES.WORKER;
+  }
 
   function newWorkerId() {
     return 'worker_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
@@ -85,11 +94,13 @@ window.App.Services.WorkerIdentityService = (function () {
       return { ok: true, worker: reentry.worker, wasExisting: true, notice: MESSAGE.SIGNUP_DUPLICATE };
     }
 
+    var role = normalizeRole(input.role);
     var now = new Date().toISOString();
     var created = WorkerRepo.add({
       id: newWorkerId(),
       name: check.name,
       birthDate: check.birthDate,
+      role: role,
       isOnSite: true,
       currentWorkZoneId: null,
       lastQrScannedAt: null,
@@ -103,13 +114,24 @@ window.App.Services.WorkerIdentityService = (function () {
       return { ok: false, error: ErrorHandler.handle('STORAGE_WRITE_FAILED', traceId, { name: check.name }) };
     }
 
+    // 관리자로 가입하면 관리자 명부에도 올려서, 상태 변경·알림 발송의 주체가 된다.
+    if (role === ROLES.ADMIN) {
+      AdminRepo.add({
+        id: created.worker.id,
+        name: check.name,
+        role: 'safety_manager',
+        canAccessAdminPanel: true,
+        registeredAt: now
+      });
+    }
+
     SessionRepo.setCurrentWorker(created.worker.id);
     Logger.log(
-      'worker.signedUp',
-      'worker',
+      role === ROLES.ADMIN ? 'admin.signedUp' : 'worker.signedUp',
+      role === ROLES.ADMIN ? 'admin' : 'worker',
       created.worker.id,
-      { name: check.name, birthDate: check.birthDate },
-      '작업자 회원가입',
+      { name: check.name, birthDate: check.birthDate, role: role },
+      ROLE_LABELS[role] + ' 회원가입',
       traceId
     );
 
@@ -169,13 +191,25 @@ window.App.Services.WorkerIdentityService = (function () {
     return String(birthDate).replace(/-/g, '.');
   }
 
+  function isAdmin(worker) {
+    return !!worker && worker.role === ROLES.ADMIN;
+  }
+
+  function roleLabel(worker) {
+    return ROLE_LABELS[normalizeRole(worker && worker.role)];
+  }
+
   return {
+    ROLES: ROLES,
+    ROLE_LABELS: ROLE_LABELS,
     signUp: signUp,
     logIn: logIn,
     logOut: logOut,
     getCurrentWorker: getCurrentWorker,
     hasAnyAccount: hasAnyAccount,
     formatBirthDate: formatBirthDate,
+    isAdmin: isAdmin,
+    roleLabel: roleLabel,
     MAX_NAME_LENGTH: MAX_NAME_LENGTH
   };
 })();

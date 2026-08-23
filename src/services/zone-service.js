@@ -23,7 +23,13 @@ window.App.Services.ZoneService = (function () {
 
     var workZone = WorkZoneRepo.findByQrValue(qrValue);
     if (!workZone) {
-      return { ok: false, error: ErrorHandler.handle('INVALID_QR', traceId, { qrValue: qrValue }) };
+      // 읽기는 성공했지만 어느 구역인지 모르는 QR이다.
+      // 읽어낸 값을 함께 돌려줘서 화면에서 구역에 연결할 수 있게 한다.
+      return {
+        ok: false,
+        unknownQrValue: String(qrValue || '').trim(),
+        error: ErrorHandler.handle('INVALID_QR', traceId, { qrValue: qrValue })
+      };
     }
 
     var previousWorkZoneId = worker.currentWorkZoneId;
