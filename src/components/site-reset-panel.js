@@ -17,10 +17,8 @@ window.App.Components.SiteResetPanel = (function () {
   function render(container, props) {
     var lastCleared = formatWhen(props.lastClearedAt);
 
-    // 확인 중이거나 방금 결과가 나온 경우에는 접히지 않게 열어둔다.
-    var keepOpen = props.armed || !!props.feedbackMessage;
-    var html = '<details class="panel admin-panel reset-panel"' + (keepOpen ? ' open' : '') + '>';
-    html += '<summary class="reset-summary">현장 초기화</summary>';
+    var html = '<div class="panel admin-panel reset-panel">';
+    html += '<h3 class="panel-title">현장 초기화</h3>';
 
     html += '<p class="panel-sub reset-sub">연습이나 지난 시연에서 남은 기록을 비우고 새로 시작합니다. ' +
       '계정은 지워지지 않아서 같은 이름·생년월일로 다시 로그인할 수 있습니다.</p>';
@@ -38,13 +36,13 @@ window.App.Components.SiteResetPanel = (function () {
     }
 
     if (props.armed) {
-      html += '<div class="reset-confirm">정말 초기화할까요? 다른 기기에도 즉시 적용됩니다.</div>';
+      html += '<div class="reset-confirm">정말 초기화할까요? 접속 중인 모든 기기에 즉시 적용되어 함께 로그아웃됩니다.</div>';
       html += '<div class="reset-actions">';
       html += '<button class="btn btn-reset-go" id="reset-go-btn">네, 초기화합니다</button>';
       html += '<button class="btn btn-secondary" id="reset-cancel-btn">취소</button>';
       html += '</div>';
     } else {
-      html += '<button class="btn btn-secondary btn-reset-arm" id="reset-arm-btn">현장 초기화하기</button>';
+      html += '<button class="btn btn-reset-arm" id="reset-arm-btn">현장 초기화하기</button>';
     }
 
     if (props.feedbackMessage) {
@@ -52,7 +50,7 @@ window.App.Components.SiteResetPanel = (function () {
         esc(props.feedbackMessage) + '</div>';
     }
 
-    html += '</details>';
+    html += '</div>';
     container.innerHTML = html;
 
     var arm = container.querySelector('#reset-arm-btn');
