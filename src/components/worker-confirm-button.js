@@ -12,12 +12,14 @@ window.App.Components.WorkerConfirmButton = (function () {
 
     var confirmType = null;
     var buttonLabel = null;
+    // 경보 화면의 버튼과 같은 문구를 쓴다.
+    var MESSAGE = window.App.Constants.MESSAGE;
     if (guidance.displayType === 'evacuation' || guidance.displayType === 'major_evacuation') {
       confirmType = 'evacuation_confirmed';
-      buttonLabel = '대피 확인';
+      buttonLabel = MESSAGE.FIRE_ALERT_EVACUATED;
     } else if (guidance.displayType === 'notice' || guidance.displayType === 'control') {
       confirmType = 'notice_acknowledged';
-      buttonLabel = '안내 확인';
+      buttonLabel = MESSAGE.FIRE_ALERT_ACK;
     }
 
     if (confirmType) {

@@ -89,8 +89,13 @@ window.App.Components.FireAlertOverlay = (function () {
       }
     }
 
+    // 대피해야 하는 단계에서만 "대피했습니다"라고 쓴다.
+    // 초기화재는 현장 통제를 따르는 단계라 대피 표현을 쓰지 않는다.
+    var isEvacuationStage = guidance.displayType === 'evacuation' || guidance.displayType === 'major_evacuation';
+    var ackLabel = isEvacuationStage ? MESSAGE.FIRE_ALERT_EVACUATED : MESSAGE.FIRE_ALERT_ACK;
+
     html += '<div class="fa-actions">';
-    html += '<button class="fa-ack" id="fa-ack-btn">' + MESSAGE.FIRE_ALERT_ACK + '</button>';
+    html += '<button class="fa-ack" id="fa-ack-btn">' + ackLabel + '</button>';
     html += '<button class="fa-mute" id="fa-mute-btn">' + (Alarm.isMuted() ? '소리 켜기' : '소리 끄기') + '</button>';
     html += '</div>';
 

@@ -60,6 +60,10 @@ window.App.Constants.MESSAGE = Object.freeze({
 
   // 화재경보
   FIRE_ALERT_TITLE: '화재 발생',
+  // 대피 단계에서 누르는 버튼. 실제로 대피를 마쳤다는 뜻이다.
+  FIRE_ALERT_EVACUATED: '대피했습니다',
+  // 이상징후·초기화재 단계에서 누르는 버튼.
+  // 이 단계에서는 대피가 아니라 현장 안내를 따르는 것이 맞으므로 "대피" 표현을 쓰지 않는다.
   FIRE_ALERT_ACK: '확인했습니다',
 
   // 구역 QR 등록(관리자)
