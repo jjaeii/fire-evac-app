@@ -1,0 +1,14 @@
+# 로컬 개발용 자체 서명 인증서 (개인 키 포함 - 절대 커밋하지 않는다)
+.claude/devcert.pfx
+
+# 기기 간 공유 상태 (현장 운영 데이터 - 코드가 아니다)
+.claude/state/
+
+# 빌드 산출물
+dist/
+
+# OS / 편집기
+Thumbs.db
+desktop.ini
+.DS_Store
+*.swp

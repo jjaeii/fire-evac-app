@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!--
+  WHAT: 제조공장 작업자와 관리자가 화재 상황에서 현재 작업구역 기준으로
+  사용할 수 있는 대피 방향과 대피 확인 상태를 판단하기 위해 쓰는 모바일 웹앱이다.
+
+  중요 원칙: 이 앱은 판단 보조 도구다. 최종 대피 판단은 사람(안전관리자)이 한다.
+  이 앱은 화재를 감지하거나, GPS로 위치를 추적하거나, 소방설비/119를 자동으로
+  작동시키지 않는다. (NOT.01~NOT.04 참고)
+-->
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>제조공장 화재 대피 안내</title>
+  <link rel="stylesheet" href="src/styles.css" />
+  <link rel="stylesheet" href="src/styles.v2.css" />
+  <link rel="stylesheet" href="src/styles.v3.css" />
+  <link rel="stylesheet" href="src/styles.v4.css" />
+  <link rel="stylesheet" href="src/styles.v5.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <h1 class="app-title">화재 대피 안내</h1>
+      <p class="app-subtitle">제조공장 1층 · 작업구역 기준 대피정보 판단 보조</p>
+      <div class="principle-strip">이 앱은 대피정보 제공을 보조합니다. 최종 판단과 실제 대피 통제는 안전관리자와 현장 절차가 담당합니다.</div>
+      <div id="tabs-root"></div>
+    </header>
+    <main class="app-main" id="main-root"></main>
+    <footer class="app-footer">외부 서버·로그인·결제·GPS·AI 감지 없음 · 기기 내 localStorage 저장</footer>
+  </div>
+
+  <!-- 외부 라이브러리: QR 디코더 (jsQR, MIT) -->
+  <script src="src/vendor/jsqr.js"></script>
+
+  <!-- L3 기반층: 상수 -->
+  <script src="src/constants/fire-stages.js"></script>
+  <script src="src/constants/confirm-types.js"></script>
+  <script src="src/constants/messages.js"></script>
+  <script src="src/constants/notification-types.js"></script>
+  <script src="src/constants/design-tokens.js"></script>
+
+  <!-- L2 자료층: 현장 기준 데이터 -->
+  <script src="src/data/site-data.js"></script>
+
+  <!-- L3 기반층: 기반 유틸리티 -->
+  <script src="src/foundation/trace-id-factory.js"></script>
+  <script src="src/foundation/env-config.js"></script>
+  <script src="src/foundation/html-escape.js"></script>
+  <script src="src/foundation/alarm-sound.js"></script>
+
+  <!-- L2 자료층: 어댑터 -->
+  <script src="src/adapters/local-storage-adapter.js"></script>
+
+  <!-- L2 자료층: 저장소 (Logger가 LogRepository를 참조하므로 먼저 로드) -->
+  <script src="src/repositories/log-repository.js"></script>
+  <script src="src/repositories/qr-mapping-repository.js"></script>
+  <script src="src/repositories/session-repository.js"></script>
+  <script src="src/repositories/worker-repository.js"></script>
+  <script src="src/repositories/admin-repository.js"></script>
+  <script src="src/repositories/work-zone-repository.js"></script>
+  <script src="src/repositories/exit-repository.js"></script>
+  <script src="src/repositories/evacuation-route-repository.js"></script>
+  <script src="src/repositories/emergency-repository.js"></script>
+  <script src="src/repositories/blocked-route-repository.js"></script>
+  <script src="src/repositories/worker-confirmation-repository.js"></script>
+  <script src="src/repositories/notification-repository.js"></script>
+
+  <!-- L3 기반층: Logger, ErrorHandler (저장소 이후 로드) -->
+  <script src="src/foundation/logger.js"></script>
+  <script src="src/foundation/error-handler.js"></script>
+
+  <!-- L1 기능층: 서비스 -->
+  <script src="src/services/app-state-service.js"></script>
+  <script src="src/services/sync-service.js"></script>
+  <script src="src/services/camera-permission-service.js"></script>
+  <script src="src/services/qr-decode-service.js"></script>
+  <script src="src/services/worker-identity-service.js"></script>
+  <script src="src/services/zone-service.js"></script>
+  <script src="src/services/emergency-service.js"></script>
+  <script src="src/services/evacuation-service.js"></script>
+  <script src="src/services/confirmation-service.js"></script>
+  <script src="src/services/admin-status-service.js"></script>
+  <script src="src/services/notification-service.js"></script>
+
+  <!-- L0 화면층: 컴포넌트 -->
+  <script src="src/components/camera-permission-gate.js"></script>
+  <script src="src/components/auth-gate.js"></script>
+  <script src="src/components/notification-banner.js"></script>
+  <script src="src/components/qr-scanner-overlay.js"></script>
+  <script src="src/components/qr-scan-panel.js"></script>
+  <script src="src/components/work-zone-status-card.js"></script>
+  <script src="src/components/fire-stage-badge.js"></script>
+  <script src="src/components/safety-message-box.js"></script>
+  <script src="src/components/evacuation-info-panel.js"></script>
+  <script src="src/components/worker-confirm-button.js"></script>
+  <script src="src/components/fire-alert-overlay.js"></script>
+  <script src="src/components/emergency-stage-selector.js"></script>
+  <script src="src/components/floor-plan-panel.js"></script>
+  <script src="src/components/admin-notify-panel.js"></script>
+  <script src="src/components/blocked-route-selector.js"></script>
+  <script src="src/components/worker-evacuation-table.js"></script>
+  <script src="src/components/zone-qr-binding-panel.js"></script>
+  <script src="src/components/restore-status-button.js"></script>
+  <script src="src/components/log-panel.js"></script>
+
+  <!-- 라우터 / 초기 연결 -->
+  <script src="src/main.js"></script>
+</body>
+</html>

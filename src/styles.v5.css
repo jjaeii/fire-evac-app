@@ -1,0 +1,277 @@
+/* ============================================================
+   v5 - 현장 도면(1층) 재구성 + 화재 구역 표시
+   A구역(좌상) · B구역(우상) · C구역(중앙 하단) · 남측 부속실
+   ============================================================ */
+
+.floor-plan-panel .panel-title { margin-bottom: 8px; }
+
+.fp2-alarm-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--status-danger);
+  color: #fff;
+  border-radius: 10px;
+  padding: 11px 13px;
+  margin-bottom: 12px;
+  font-weight: 800;
+  font-size: 13.5px;
+  animation: fa-blink 1.2s steps(2, start) infinite;
+}
+.fp2-alarm-strip-unknown {
+  background: var(--status-caution-bg);
+  color: var(--status-caution);
+  border: 1px solid rgba(242, 183, 5, 0.5);
+  animation: none;
+  font-size: 12.5px;
+}
+.fp2-alarm-icon { font-size: 17px; }
+.fp2-alarm-text { flex: 1; min-width: 140px; }
+.fp2-alarm-count {
+  font-size: 11.5px;
+  font-weight: 800;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.fp2-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  font-size: 11px;
+  color: var(--color-text-dim);
+}
+.fp2-legend-item { display: inline-flex; align-items: center; gap: 4px; }
+.fp2-legend-swatch { font-size: 12px; }
+
+/* ---- 건물 외곽 ---- */
+.fp2-building {
+  position: relative;
+  border: 3px solid var(--color-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  padding: 18px 16px 16px;
+  margin: 14px 6px;
+}
+
+.floor-plan-fire .fp2-building { border-color: rgba(255, 85, 72, 0.5); }
+
+/* ---- 벽에 붙는 설비 표시 ---- */
+.fp2-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  line-height: 1;
+  padding: 3px 5px;
+  border-radius: 5px;
+  white-space: nowrap;
+  z-index: 2;
+}
+.fp2-marker-exit { background: #1f7a3f; color: #fff; }
+.fp2-marker-fire { background: #b3261e; color: #fff; }
+.fp2-marker-blocked {
+  background: #4a4a4a;
+  color: #ffb4ae;
+  text-decoration: line-through;
+}
+.fp2-marker-label { font-size: 9px; font-weight: 800; }
+
+/* ---- 구역 배치 ---- */
+.fp2-row { display: flex; gap: 10px; }
+.fp2-row-upper { align-items: stretch; }
+.fp2-row-middle {
+  justify-content: center;
+  margin: 26px 0 18px;
+}
+.fp2-row-middle .fp2-zone { width: 62%; }
+.fp2-gap { width: 8%; flex: none; }
+
+.fp2-zone {
+  position: relative;
+  flex: 1;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  padding: 11px 10px 12px;
+  min-height: 132px;
+  background: var(--color-surface);
+}
+.fp2-zone-empty { opacity: 0.75; }
+
+.fp2-zone_a { border-color: rgba(90, 150, 220, 0.55); background: rgba(90, 150, 220, 0.07); }
+.fp2-zone_b { border-color: rgba(232, 190, 70, 0.55); background: rgba(232, 190, 70, 0.07); }
+.fp2-zone_c { border-color: rgba(96, 200, 130, 0.55); background: rgba(96, 200, 130, 0.07); }
+
+/* ---- 화재 구역 ---- */
+.fp2-zone-fire {
+  border-color: var(--status-danger) !important;
+  background: rgba(255, 85, 72, 0.16) !important;
+  box-shadow: 0 0 0 3px rgba(255, 85, 72, 0.22);
+  animation: fp2-fire-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes fp2-fire-pulse {
+  0%, 100% {
+    background: rgba(255, 85, 72, 0.14);
+    box-shadow: 0 0 0 3px rgba(255, 85, 72, 0.18);
+  }
+  50% {
+    background: rgba(255, 85, 72, 0.30);
+    box-shadow: 0 0 0 6px rgba(255, 85, 72, 0.30);
+  }
+}
+
+.fp2-fire-flag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--status-danger);
+  color: #fff;
+  border-radius: 7px;
+  padding: 6px 8px;
+  margin-bottom: 9px;
+}
+.fp2-fire-icon { font-size: 15px; line-height: 1; }
+.fp2-fire-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+.fp2-fire-stage { font-size: 10px; font-weight: 700; opacity: 0.9; }
+
+.fp2-zone-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+.fp2-zone-tag {
+  font-size: 13px;
+  font-weight: 900;
+  padding: 3px 9px;
+  border-radius: 6px;
+  color: #0f1512;
+}
+.fp2-zone_a .fp2-zone-tag { background: #5a96dc; }
+.fp2-zone_b .fp2-zone-tag { background: #e8be46; }
+.fp2-zone_c .fp2-zone-tag { background: #60c882; }
+.fp2-zone-fire .fp2-zone-tag { background: #fff; color: #b3261e; }
+
+.fp2-zone-count {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.fp2-zone-fire .fp2-zone-count { color: #ffd9d5; }
+
+.fp2-zone-purpose {
+  font-size: 11px;
+  color: var(--color-text-dim);
+  margin-bottom: 9px;
+}
+
+.fp2-cctv {
+  position: absolute;
+  top: -9px;
+  right: 8px;
+  font-size: 8.5px;
+  font-weight: 800;
+  background: #101a15;
+  color: #9fb3a8;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 2px 5px;
+  white-space: nowrap;
+}
+
+.fp2-zone-alert {
+  margin-top: 9px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--status-danger);
+}
+.fp2-zone-fire .fp2-zone-alert { color: #fff; }
+
+/* ---- 남측 부속실 ---- */
+.fp2-service {
+  display: grid;
+  grid-template-columns: 0.8fr 1fr 0.8fr 1fr 1fr;
+  gap: 6px;
+  border-top: 2px dashed var(--color-border);
+  padding-top: 14px;
+}
+.fp2-room {
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  padding: 10px 4px;
+  text-align: center;
+  font-size: 10.5px;
+  color: var(--color-text-dim);
+  background: var(--color-surface);
+}
+.fp2-room-gate {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.fp2-blocked-note {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--status-danger);
+  font-weight: 700;
+}
+
+@media (max-width: 560px) {
+  .fp2-building { padding: 22px 12px 14px; margin: 16px 4px; }
+  .fp2-row-upper { flex-direction: column; }
+  .fp2-gap { display: none; }
+  .fp2-row-middle { margin: 14px 0; }
+  .fp2-row-middle .fp2-zone { width: 100%; }
+  .fp2-zone { min-height: 0; }
+  .fp2-service { grid-template-columns: repeat(3, 1fr); }
+  .fp2-marker-label { display: none; }
+  .fp2-marker { padding: 3px 4px; }
+}
+
+/* 긴 trace id가 좁은 화면에서 삐져나오지 않게 */
+.log-trace { overflow-wrap: anywhere; min-width: 0; }
+.log-item { flex-wrap: wrap; }
+
+/* ---- 기기 간 동기화 상태 표시 ---- */
+.sync-chip {
+  display: inline-block;
+  margin-left: auto;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.sync-chip-on { color: var(--status-normal); background: var(--status-normal-bg); }
+.sync-chip-down { color: var(--status-danger); background: var(--status-danger-bg); }
+.sync-chip-off { color: var(--color-text-dim); background: var(--status-neutral-bg); }
+.worker-identity-row { width: 100%; }
+
+/* ---- 실시간 스캔이 막혔을 때의 촬영 안내 ---- */
+.qr-photo-hint {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--color-text-dim);
+}
+.btn-retry-permission {
+  width: 100%;
+  margin-top: 10px;
+  font-size: 12.5px;
+}

@@ -1,0 +1,562 @@
+/* ============================================================
+   v2 - 이름 입장 / 카메라 QR / 도면 현황판 / 전체 화재경보
+   styles.css 다음에 읽힌다. 기존 토큰(:root 변수)을 그대로 쓴다.
+   ============================================================ */
+
+body.modal-open { overflow: hidden; }
+
+/* ---- 헤더: 입장 중인 작업자 ---- */
+.worker-identity-chip {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--status-normal);
+  background: var(--status-normal-bg);
+}
+
+/* ---- 입장 화면 ---- */
+.entry-gate .input { margin-bottom: 2px; }
+.required-mark { color: var(--status-danger); }
+
+.btn-enter {
+  margin-top: 16px;
+  font-size: 16px;
+  padding: 16px;
+}
+
+.entry-note {
+  margin: 12px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--color-text-dim);
+}
+
+.entry-fire-strip {
+  background: var(--status-danger);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  text-align: center;
+  animation: fa-blink 1s steps(2, start) infinite;
+}
+
+/* ---- QR 스캔 패널 ---- */
+.btn-scan { margin-top: 0; }
+
+.btn-photo,
+.scanner-file-btn,
+.qr-bind-actions label.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.qr-manual-details {
+  margin-top: 12px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 10px;
+}
+.qr-manual-details summary {
+  font-size: 12.5px;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  list-style: none;
+}
+.qr-manual-details summary::-webkit-details-marker { display: none; }
+.qr-manual-details .qr-manual-row { margin-top: 10px; }
+
+.feedback-warn { background: var(--status-caution-bg); color: var(--status-caution); }
+
+.status-value-missing { color: var(--status-caution); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-dim);
+  border: 1px solid var(--color-border);
+}
+.btn-leave { width: 100%; margin-top: 12px; font-size: 13px; }
+
+/* ---- 카메라 스캐너 오버레이 ---- */
+.scanner-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: #050806;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+}
+
+.scanner-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.scanner-title { font-size: 15px; font-weight: 800; color: var(--color-text); }
+.scanner-close {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.scanner-stage {
+  position: relative;
+  flex: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.scanner-stage-off { background: var(--color-surface); }
+
+.scanner-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scanner-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(64vw, 260px);
+  aspect-ratio: 1 / 1;
+  border: 3px solid var(--accent);
+  border-radius: 18px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+}
+
+.scanner-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-dim);
+}
+.scanner-hint-error { color: var(--status-danger); font-weight: 700; }
+
+.scanner-actions { display: flex; }
+.scanner-file-btn { margin-top: 0; }
+
+/* ---- 전체 화면 화재경보 ---- */
+.fire-alert {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #c81f16;
+  color: #fff;
+  overflow-y: auto;
+  animation: fa-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes fa-pulse {
+  0%, 100% { background: #c81f16; }
+  50% { background: #98150e; }
+}
+@keyframes fa-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.fa-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 20px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.fa-siren {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fff;
+  margin-bottom: 14px;
+  animation: fa-blink 0.7s steps(2, start) infinite;
+}
+
+.fa-stage {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 6px 14px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+}
+
+.fa-title {
+  font-family: var(--font-display);
+  font-size: 46px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  margin: 12px 0 18px;
+  line-height: 1.1;
+}
+
+.fa-where {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.fa-where-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 15px;
+  padding: 5px 0;
+}
+.fa-where-label { opacity: 0.85; }
+.fa-where-value { font-weight: 800; }
+
+.fa-banner {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+.fa-banner-danger { background: #fff; color: #c81f16; }
+.fa-banner-blocked { background: rgba(0, 0, 0, 0.3); color: #ffd9d5; }
+.fa-banner-major { background: #240604; color: #fff; }
+
+.fa-message {
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.5;
+  margin: 0 0 18px;
+}
+
+.fa-routes {
+  width: 100%;
+  text-align: left;
+  margin-bottom: 12px;
+}
+.fa-routes-title {
+  font-size: 13px;
+  font-weight: 800;
+  opacity: 0.85;
+  margin-bottom: 8px;
+  letter-spacing: 0.04em;
+}
+.fa-route {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.fa-route-name { font-size: 16px; font-weight: 900; margin-bottom: 3px; }
+.fa-route-dir { font-size: 14px; line-height: 1.45; opacity: 0.95; }
+
+.fa-exits {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.fa-exit-chip {
+  background: #fff;
+  color: #c81f16;
+  font-weight: 900;
+  font-size: 14px;
+  padding: 8px 14px;
+  border-radius: 999px;
+}
+
+.fa-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+.fa-ack {
+  width: 100%;
+  background: #fff;
+  color: #c81f16;
+  border: none;
+  border-radius: 12px;
+  padding: 18px;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  min-height: 56px;
+}
+.fa-mute {
+  width: 100%;
+  background: transparent;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.fa-foot {
+  margin: 18px 0 0;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+/* ---- 관리자: 1층 도면 현황판 ---- */
+.fp-legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  font-size: 11.5px;
+  color: var(--color-text-dim);
+}
+.fp-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.legend-idle { background: var(--status-neutral); }
+.legend-unconfirmed { background: var(--status-danger); }
+.legend-confirmed { background: var(--status-normal); }
+
+.fp-building {
+  border: 2px solid var(--color-border);
+  border-radius: 12px;
+  padding: 14px 12px;
+  background: var(--color-bg);
+}
+
+.fp-zone-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.fp-zone {
+  position: relative;
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 10px;
+  min-height: 150px;
+  background: var(--color-surface);
+}
+.fp-zone-a { border-color: rgba(90, 150, 220, 0.5); }
+.fp-zone-b { border-color: rgba(232, 190, 70, 0.5); }
+.fp-zone-c { border-color: rgba(96, 200, 130, 0.5); }
+.fp-zone-empty { opacity: 0.72; }
+
+.fp-zone-affected {
+  border-color: var(--status-danger);
+  background: var(--status-danger-bg);
+  animation: fa-blink 1.4s steps(2, start) infinite;
+}
+
+.fp-zone-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+.fp-zone-name { font-size: 15px; font-weight: 900; }
+.fp-zone-count {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.fp-zone-purpose {
+  font-size: 11px;
+  color: var(--color-text-dim);
+  margin-bottom: 8px;
+}
+
+.fp-zone-flag {
+  background: var(--status-danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 6px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.fp-occupants { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.occupant {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 12px;
+  font-weight: 700;
+  max-width: 100%;
+}
+.occupant-dept {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-dim);
+}
+.occupant-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--status-neutral);
+  flex: none;
+}
+.occupant-idle .occupant-dot { background: var(--status-neutral); }
+.occupant-unconfirmed .occupant-dot { background: var(--status-danger); }
+.occupant-unconfirmed { border-color: rgba(255, 85, 72, 0.6); color: var(--status-danger); }
+.occupant-confirmed .occupant-dot { background: var(--status-normal); }
+.occupant-confirmed { border-color: rgba(62, 207, 110, 0.5); }
+
+.fp-empty-text { font-size: 11.5px; color: var(--color-text-dim); }
+
+.fp-zone-alert {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--status-danger);
+}
+
+.fp-exit {
+  position: absolute;
+  background: #1f7a3f;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.fp-exit-top { top: -9px; left: 50%; transform: translateX(-50%); }
+.fp-exit-bottom { bottom: -9px; left: 50%; transform: translateX(-50%); }
+.fp-exit-left { left: -22px; top: 50%; transform: translateY(-50%) rotate(-90deg); }
+.fp-exit-right { right: -22px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+
+.fp-corridor {
+  margin: 18px 0 12px;
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-dim);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.fp-service-row {
+  display: grid;
+  grid-template-columns: 0.7fr 1fr 0.7fr 1fr 1fr;
+  gap: 6px;
+}
+.fp-room {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px 4px;
+  text-align: center;
+  font-size: 10.5px;
+  color: var(--color-text-dim);
+  background: var(--color-surface);
+}
+.fp-room-gate {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.fp-unassigned {
+  margin-top: 12px;
+  border: 1px solid rgba(242, 183, 5, 0.4);
+  background: var(--status-caution-bg);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.fp-unassigned-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--status-caution);
+  margin-bottom: 8px;
+}
+.fp-unassigned-note { font-weight: 500; opacity: 0.85; }
+
+.fp-none {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--color-text-dim);
+}
+
+/* ---- 관리자: 구역 QR 등록 ---- */
+.qr-bind-actions { margin-top: 10px; }
+.qr-bind-actions .btn-primary { margin-top: 0; }
+
+.qr-bind-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.qr-bind-zone {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px;
+}
+.qr-bind-zone-name { font-size: 12.5px; font-weight: 800; margin-bottom: 6px; }
+.qr-bind-codes { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.qr-bind-none { font-size: 11.5px; color: var(--color-text-dim); }
+
+.qr-code-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-family: monospace;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.qr-code-default { color: var(--color-text-dim); }
+.qr-code-tag {
+  font-family: var(--font-body);
+  font-size: 9.5px;
+  font-weight: 800;
+  color: var(--accent);
+}
+.qr-code-remove {
+  background: none;
+  border: none;
+  color: var(--status-danger);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+@media (max-width: 560px) {
+  .fp-zone-row { grid-template-columns: 1fr; gap: 22px; }
+  .fp-zone { min-height: 0; }
+  .fp-service-row { grid-template-columns: repeat(3, 1fr); }
+  .fa-title { font-size: 38px; }
+}

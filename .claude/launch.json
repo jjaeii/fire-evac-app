@@ -1,0 +1,21 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "fire-evac-app",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        ".claude/https-server.ps1",
+        "-Port",
+        "8443",
+        "-HttpPort",
+        "8123"
+      ],
+      "port": 8123
+    }
+  ]
+}
